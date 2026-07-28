@@ -27,3 +27,6 @@ start-postgrest.bat
 mds/*
 pdfs/*
 csvs/*
+.gitignore
+.agents/
+MEMORY.md

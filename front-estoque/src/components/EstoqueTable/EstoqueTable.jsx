@@ -1,66 +1,73 @@
 // EstoqueTable.jsx
-// Consome GET /v_estoque_completo via PostgREST.
-// Filtro local por descricao ou modelo_referencia.
-// Sem dependências externas — React puro com fetch.
+// Consome GET /v_estoque_completo via PostgREST — v2.
+// Colunas: Grupo (grupo_funcional badge) + Ativo (tipo_ativo) + demais.
+// Especificações lidas de row.especificacoes (JSONB plano da view).
 
 import { useState, useEffect } from 'react';
 import { POSTGREST_URL } from '../../config.js';
+import { GRUPO_COR } from '../ItemForm/ExtensaoFields.jsx';
+import EditModal from '../EditModal/EditModal.jsx';
 import './EstoqueTable.css';
 
-// Mapa de categoria → grupo_funcional (para a tag colorida)
-const GRUPO_MAP = {
-  DISJUNTOR: 'PROTECAO_CHAVEAMENTO', MINI_DISJUNTOR: 'PROTECAO_CHAVEAMENTO',
-  FUSIVEL: 'PROTECAO_CHAVEAMENTO', CHAVE: 'PROTECAO_CHAVEAMENTO', PARA_RAIO: 'PROTECAO_CHAVEAMENTO',
-  CONTATOR: 'ACIONAMENTO_CONTROLE', RELE: 'ACIONAMENTO_CONTROLE',
-  CONTATO_AUXILIAR: 'ACIONAMENTO_CONTROLE', COMANDO_ELETRICO: 'ACIONAMENTO_CONTROLE',
-  SOFTSTARTER: 'ACIONAMENTO_CONTROLE',
-  TC: 'TRANSFORMADORES', TT: 'TRANSFORMADORES', AUTOTRANSFORMADOR: 'TRANSFORMADORES',
-  INVERSOR_FREQUENCIA: 'TRANSFORMADORES', REGULADOR: 'TRANSFORMADORES',
-  CLP_IHM: 'AUTOMACAO_MEDICAO', USCA: 'AUTOMACAO_MEDICAO',
-  INSTRUMENTO_SENSOR: 'AUTOMACAO_MEDICAO', CAPACITOR: 'AUTOMACAO_MEDICAO',
+// Rótulos legíveis para cada tipo_ativo
+const LABEL_ATIVO = {
+  DISJUNTOR:               'Disjuntor',
+  MINI_DISJUNTOR:          'Mini-Disjuntor',
+  RELE:                    'Relé',
+  FUSIVEL:                 'Fusível',
+  CHAVE:                   'Chave',
+  PARA_RAIO:               'Pára-Raio',
+  BARRA_ATERRAMENTO:       'Barra de Aterramento',
+  CABO:                    'Cabo',
+  BARRAMENTO:              'Barramento',
+  CAIXA:                   'Caixa',
+  PAINEL:                  'Painel',
+  SOFTSTARTER:             'Softstarter',
+  INVERSOR:                'Inversor',
+  PARAFUSO:                'Parafuso',
+  PORCA:                   'Porca',
+  ARRUELA:                 'Arruela',
+  TERMINAL:                'Terminal',
+  TRANSFORMADOR_TENSAO:    'Transf. de Tensão',
+  TRANSFORMADOR_CORRENTE:  'Transf. de Corrente',
+  AUTOTRANSFORMADOR:       'Autotransformador',
 };
 
-// Retorna o subtipo e os campos técnicos resumidos de uma row da view
+// Extrai resumo de especificações técnicas do JSONB para exibição na tabela
 function getInfoTecnica(row) {
-  const g = row.grupo_funcional;
-  if (g === 'PROTECAO_CHAVEAMENTO') {
-    const parts = [row.pc_subtipo, row.pc_corrente_nominal_a && `${row.pc_corrente_nominal_a}A`,
-                   row.pc_tensao_nominal_v && `${row.pc_tensao_nominal_v}V`, row.pc_numero_polos].filter(Boolean);
-    return parts.join(' · ') || '—';
-  }
-  if (g === 'ACIONAMENTO_CONTROLE') {
-    const parts = [row.ac_subtipo, row.ac_tensao_operacao_v && `${row.ac_tensao_operacao_v}V`,
-                   row.ac_corrente_nominal_a && `${row.ac_corrente_nominal_a}A`].filter(Boolean);
-    return parts.join(' · ') || '—';
-  }
-  if (g === 'TRANSFORMADORES') {
-    const parts = [row.tr_subtipo, row.tr_tensao_entrada_v && `${row.tr_tensao_entrada_v}V→${row.tr_tensao_saida_v}V`].filter(Boolean);
-    return parts.join(' · ') || '—';
-  }
-  if (g === 'AUTOMACAO_MEDICAO') {
-    return [row.am_subtipo, row.am_tensao_alimentacao_v && `${row.am_tensao_alimentacao_v}V`].filter(Boolean).join(' · ') || '—';
-  }
-  return [row.inf_subtipo, row.inf_tensao_v && `${row.inf_tensao_v}V`].filter(Boolean).join(' · ') || '—';
+  const spec = row.especificacoes || {};
+  const partes = [];
+
+  // Campos comuns mais relevantes para exibição
+  if (spec.tipo)         partes.push(spec.tipo);
+  if (spec.polos)        partes.push(spec.polos);
+  if (spec.curva)        partes.push(`Curva ${spec.curva}`);
+  if (spec.corrente_a)   partes.push(`${spec.corrente_a} A`);
+  if (spec.corrente_min_a && spec.corrente_max_a)
+    partes.push(`${spec.corrente_min_a}–${spec.corrente_max_a} A`);
+  if (spec.tensao_v)     partes.push(`${spec.tensao_v} V`);
+  if (spec.potencia_kw)  partes.push(`${spec.potencia_kw} kW`);
+  if (spec.material)     partes.push(spec.material);
+  if (spec.bitola_mm2)   partes.push(`${spec.bitola_mm2} mm²`);
+  if (spec.isolamento)   partes.push(spec.isolamento);
+
+  return partes.length > 0 ? partes.join(' · ') : '—';
 }
 
 export default function EstoqueTable() {
   const [dados, setDados] = useState([]);
   const [filtro, setFiltro] = useState('');
-  // loading inicia true para mostrar estado enquanto o primeiro fetch ocorre
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
-  // Incrementar este contador força o useEffect a re-executar o fetch
   const [fetchTick, setFetchTick] = useState(0);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [itemSelecionado, setItemSelecionado] = useState(null);
+  const [fabricantes, setFabricantes] = useState([]);
 
-  const recarregar = () => {
-    setLoading(true);
-    setErro(null);
-    setFetchTick(t => t + 1);
-  };
+  const recarregar = () => { setLoading(true); setErro(null); setFetchTick(t => t + 1); };
 
   useEffect(() => {
-    let ativo = true; // evita setState após desmontagem
-
+    let ativo = true;
     fetch(`${POSTGREST_URL}/v_estoque_completo?order=criado_em.desc`, {
       headers: { Accept: 'application/json' },
     })
@@ -70,21 +77,48 @@ export default function EstoqueTable() {
       })
       .then(json => { if (ativo) { setDados(json); setLoading(false); } })
       .catch(e => { if (ativo) { setErro(e.message); setLoading(false); } });
-
     return () => { ativo = false; };
   }, [fetchTick]);
 
-  // Filtro local — busca em descricao e modelo_referencia
-  const filtrado = filtro.trim() === ''
-    ? dados
-    : dados.filter(row => {
-        const haystack = [row.descricao, row.modelo_referencia, row.categoria, row.fabricante]
-          .filter(Boolean).join(' ').toLowerCase();
-        return haystack.includes(filtro.toLowerCase());
-      });
+  useEffect(() => {
+    fetch(`${POSTGREST_URL}/fabricantes?order=nome.asc&select=id,nome,apelido`, {
+      headers: { Accept: 'application/json' },
+    })
+      .then(r => r.json())
+      .then(setFabricantes)
+      .catch(() => setFabricantes([]));
+  }, []);
+
+  const filtrado = dados
+    .filter(row => row.status !== 'DESCARTADO')
+    .filter(row => {
+      if (!filtro.trim()) return true;
+      const haystack = [
+        row.descricao, row.modelo_referencia,
+        row.tipo_ativo, row.grupo_funcional, row.fabricante,
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(filtro.toLowerCase());
+    });
+
+  const handleSelecionarItem = row => setItemSelecionado(row);
+
+  const handleModalSalvo = () => {
+    setItemSelecionado(null);
+    recarregar();
+  };
 
   return (
     <div className="estoque-table-wrapper">
+
+      {itemSelecionado && (
+        <EditModal
+          item={itemSelecionado}
+          fabricantes={fabricantes}
+          onClose={() => setItemSelecionado(null)}
+          onSalvo={handleModalSalvo}
+        />
+      )}
+
       {/* Toolbar */}
       <div className="estoque-toolbar">
         <div className="estoque-search-wrap">
@@ -92,14 +126,21 @@ export default function EstoqueTable() {
           <input
             id="estoque-filtro"
             type="text"
-            placeholder="Filtrar por descrição, modelo ou categoria..."
+            placeholder="Filtrar por descrição, modelo, tipo ou grupo..."
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
           />
         </div>
         <span className="estoque-count">
-          {loading ? '…' : `${filtrado.length} / ${dados.length} itens`}
+          {loading ? '…' : `${filtrado.length} / ${dados.filter(r => r.status !== 'DESCARTADO').length} itens`}
         </span>
+        <button
+          className={`estoque-edit-btn${modoEdicao ? ' active' : ''}`}
+          onClick={() => setModoEdicao(m => !m)}
+          title={modoEdicao ? 'Sair do modo de edição' : 'Entrar no modo de edição'}
+        >
+          {modoEdicao ? '✕ Sair da Edição' : '✏️ Editar'}
+        </button>
         <button
           className="estoque-reload-btn"
           onClick={recarregar}
@@ -111,63 +152,75 @@ export default function EstoqueTable() {
       </div>
 
       {/* Estados */}
-      {loading && (
-        <div className="estoque-state">
-          <span>⏳</span> Carregando estoque…
-        </div>
-      )}
-      {!loading && erro && (
-        <div className="estoque-state error">
-          <span>⚠️</span> Erro ao carregar: {erro}
-        </div>
-      )}
-      {!loading && !erro && dados.length === 0 && (
-        <div className="estoque-state">
-          <span>📦</span> Nenhum item cadastrado ainda.
-        </div>
+      {loading && <div className="estoque-state"><span>⏳</span> Carregando estoque…</div>}
+      {!loading && erro && <div className="estoque-state error"><span>⚠️</span> Erro ao carregar: {erro}</div>}
+      {!loading && !erro && filtrado.length === 0 && (
+        <div className="estoque-state"><span>📦</span> Nenhum item encontrado.</div>
       )}
 
       {/* Tabela */}
-      {!loading && !erro && dados.length > 0 && (
+      {!loading && !erro && filtrado.length > 0 && (
         <div className="table-scroll">
           <table className="estoque-table" aria-label="Tabela de estoque">
             <thead>
               <tr>
-                <th>Prateleira</th>
-                <th>Categoria</th>
+                {modoEdicao && <th style={{ width: 52 }}></th>}
+                <th>Grupo</th>
+                <th>Ativo</th>
+                <th>Especificações</th>
                 <th>Fabricante</th>
                 <th>Modelo / Ref.</th>
                 <th>Descrição</th>
-                <th>Info Técnica</th>
-                <th>Qtd</th>
                 <th>Condição</th>
+                <th>Qtd</th>
                 <th>Status</th>
                 <th>Local</th>
+                <th>Prateleira</th>
               </tr>
             </thead>
             <tbody>
               {filtrado.map(row => {
-                const grupo = row.grupo_funcional || GRUPO_MAP[row.categoria] || 'INFRAESTRUTURA';
+                const grupo    = row.grupo_funcional || '';
+                const grupoCor = GRUPO_COR[grupo] || {};
+                const labelAtivo = LABEL_ATIVO[row.tipo_ativo] || row.tipo_ativo || '—';
+
                 return (
-                  <tr key={row.id}>
-                    <td className="muted">{row.localizacao_prateleira || '—'}</td>
+                  <tr key={row.id} className={modoEdicao ? 'row-editavel' : ''}>
+                    {modoEdicao && (
+                      <td>
+                        <button
+                          className="row-edit-btn"
+                          title="Editar este item"
+                          onClick={() => handleSelecionarItem(row)}
+                        >
+                          ✏️
+                        </button>
+                      </td>
+                    )}
                     <td>
-                      <span className={`cat-tag ${grupo}`}>{row.categoria}</span>
+                      <span
+                        className="cat-tag"
+                        style={{ background: grupoCor.bg, color: grupoCor.color }}
+                      >
+                        {grupoCor.label || grupo}
+                      </span>
                     </td>
+                    <td style={{ fontWeight: 500 }}>{labelAtivo}</td>
+                    <td className="muted">{getInfoTecnica(row)}</td>
                     <td>{row.fabricante || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}</td>
                     <td className="muted">{row.modelo_referencia || '—'}</td>
                     <td>{row.descricao || '—'}</td>
-                    <td className="muted">{getInfoTecnica(row)}</td>
+                    <td className="muted">{row.condicao}</td>
                     <td>
                       <span className={`qty-cell${row.quantidade === 0 ? ' zero' : ''}`}>
                         {row.quantidade}
                       </span>
                     </td>
-                    <td className="muted">{row.condicao}</td>
                     <td>
                       <span className={`status-badge ${row.status}`}>{row.status}</span>
                     </td>
                     <td className="muted">{row.localizacao}</td>
+                    <td className="muted">{row.localizacao_prateleira || '—'}</td>
                   </tr>
                 );
               })}

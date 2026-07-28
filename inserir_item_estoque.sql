@@ -1,13 +1,13 @@
 -- =============================================================================
--- ARTREL ESTOQUE — Stored Procedure de Inserção via RPC PostgREST
+-- ARTREL ESTOQUE — Stored Procedure de Inserção v2
 -- Arquivo: inserir_item_estoque.sql
 -- Executar: psql -d prototipo-artrel -f inserir_item_estoque.sql
 --
--- Endpoint gerado: POST http://localhost:3000/rpc/inserir_item_estoque
--- Body esperado:   { "p_dados": { ...campos... } }
+-- Endpoint: POST http://localhost:3000/rpc/inserir_item_estoque
+-- Body:      { "p_dados": { ...campos... } }
 --
--- A procedure é a única porta de entrada para inserção de itens.
--- O front-end não precisa conhecer as tabelas de extensão nem o grupo_funcional.
+-- Lógica: valida grupo_funcional ↔ tipo_ativo, insere em items e
+-- em item_especificacoes. O frontend não conhece as tabelas internas.
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION inserir_item_estoque(p_dados JSON)
@@ -15,13 +15,13 @@ RETURNS JSON
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_categoria         TEXT;
     v_grupo_funcional   TEXT;
+    v_tipo_ativo        TEXT;
     v_fabricante_id     INT;
     v_item_id           UUID;
     v_resultado         JSON;
 
-    -- Campos base (tabela items)
+    -- Campos base
     v_localizacao_prat  TEXT;
     v_localizacao       TEXT;
     v_modelo_ref        TEXT;
@@ -35,7 +35,8 @@ BEGIN
     -- =========================================================================
     -- 1. EXTRAÇÃO DOS CAMPOS BASE
     -- =========================================================================
-    v_categoria        := p_dados->>'categoria';
+    v_grupo_funcional  := p_dados->>'grupo_funcional';
+    v_tipo_ativo       := p_dados->>'tipo_ativo';
     v_localizacao_prat := p_dados->>'localizacao_prateleira';
     v_localizacao      := COALESCE(p_dados->>'localizacao', 'GARAGEM');
     v_modelo_ref       := p_dados->>'modelo_referencia';
@@ -45,43 +46,61 @@ BEGIN
     v_status           := COALESCE(p_dados->>'status', 'DISPONIVEL');
     v_observacoes      := p_dados->>'observacoes';
 
-    -- Validação mínima
-    IF v_categoria IS NULL THEN
-        RAISE EXCEPTION 'Campo obrigatório ausente: categoria';
-    END IF;
-
     -- =========================================================================
-    -- 2. DERIVAÇÃO AUTOMÁTICA DO grupo_funcional
-    --    (replica a constraint chk_grupo_categoria — front-end não envia este campo)
+    -- 2. VALIDAÇÃO OBRIGATÓRIA
     -- =========================================================================
-    v_grupo_funcional := CASE
-        WHEN v_categoria IN ('DISJUNTOR','MINI_DISJUNTOR','FUSIVEL','CHAVE','PARA_RAIO')
-            THEN 'PROTECAO_CHAVEAMENTO'
-        WHEN v_categoria IN ('CONTATOR','RELE','CONTATO_AUXILIAR','COMANDO_ELETRICO','SOFTSTARTER')
-            THEN 'ACIONAMENTO_CONTROLE'
-        WHEN v_categoria IN ('TC','TT','AUTOTRANSFORMADOR','INVERSOR_FREQUENCIA','REGULADOR')
-            THEN 'TRANSFORMADORES'
-        WHEN v_categoria IN ('CLP_IHM','USCA','INSTRUMENTO_SENSOR','CAPACITOR')
-            THEN 'AUTOMACAO_MEDICAO'
-        WHEN v_categoria IN ('ILUMINACAO','CONECTIVIDADE','FERRAMENTAL_ATUADOR',
-                             'FIXADOR_FERRAGEM','CONDUTOR','INFRA_ACONDICIONAMENTO',
-                             'TERMINAL_CONEXAO','DISPOSITIVO_MANOBRA',
-                             'BATERIA_FONTE','KIT_CONJUNTO')
-            THEN 'INFRAESTRUTURA'
-        ELSE NULL
-    END;
-
     IF v_grupo_funcional IS NULL THEN
-        RAISE EXCEPTION 'Categoria inválida ou não mapeada: %', v_categoria;
+        RAISE EXCEPTION 'Campo obrigatório ausente: grupo_funcional';
+    END IF;
+
+    IF v_tipo_ativo IS NULL THEN
+        RAISE EXCEPTION 'Campo obrigatório ausente: tipo_ativo';
     END IF;
 
     -- =========================================================================
-    -- 3. RESOLUÇÃO DO fabricante_id
-    --    Aceita três formas no JSON:
-    --      a) "fabricante_id": 5                -> usa o ID direto
-    --      b) "fabricante_nome": "WEG"           -> lookup por nome exato
-    --      c) "fabricante_apelido": "Schneider"  -> lookup por apelido
-    --    Se nenhuma for fornecida, fabricante_id fica NULL (permitido pelo schema).
+    -- 3. VALIDAÇÃO DO VÍNCULO grupo_funcional ↔ tipo_ativo
+    --    Garante que o ativo pertence ao grupo selecionado.
+    -- =========================================================================
+    CASE v_grupo_funcional
+        WHEN 'PROTECAO_CHAVEAMENTO' THEN
+            IF v_tipo_ativo NOT IN (
+                'DISJUNTOR','MINI_DISJUNTOR','RELE','FUSIVEL',
+                'CHAVE','PARA_RAIO','BARRA_ATERRAMENTO'
+            ) THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo PROTECAO_CHAVEAMENTO', v_tipo_ativo;
+            END IF;
+
+        WHEN 'CONDUTORES' THEN
+            IF v_tipo_ativo NOT IN ('CABO','BARRAMENTO') THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo CONDUTORES', v_tipo_ativo;
+            END IF;
+
+        WHEN 'PAINEL_AUTOMACAO' THEN
+            IF v_tipo_ativo NOT IN ('CAIXA','PAINEL','SOFTSTARTER','INVERSOR') THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo PAINEL_AUTOMACAO', v_tipo_ativo;
+            END IF;
+
+        WHEN 'INFRAESTRUTURA_FERRAGEM' THEN
+            IF v_tipo_ativo NOT IN ('PARAFUSO','PORCA','ARRUELA','TERMINAL') THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo INFRAESTRUTURA_FERRAGEM', v_tipo_ativo;
+            END IF;
+
+        WHEN 'TRANSFORMADORES' THEN
+            IF v_tipo_ativo NOT IN (
+                'TRANSFORMADOR_TENSAO','TRANSFORMADOR_CORRENTE','AUTOTRANSFORMADOR'
+            ) THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo TRANSFORMADORES', v_tipo_ativo;
+            END IF;
+
+        ELSE
+            RAISE EXCEPTION 'grupo_funcional inválido: %', v_grupo_funcional;
+    END CASE;
+
+    -- =========================================================================
+    -- 4. RESOLUÇÃO DO fabricante_id
+    --    a) fabricante_id (INT direto)
+    --    b) fabricante_nome (lookup por nome)
+    --    c) fabricante_apelido (lookup por apelido)
     -- =========================================================================
     IF p_dados->>'fabricante_id' IS NOT NULL THEN
         v_fabricante_id := (p_dados->>'fabricante_id')::INT;
@@ -103,13 +122,13 @@ BEGIN
     END IF;
 
     -- =========================================================================
-    -- 4. INSERT NA TABELA CENTRAL items
+    -- 5. INSERT NA TABELA CENTRAL items
     -- =========================================================================
     INSERT INTO items (
         localizacao_prateleira,
         localizacao,
-        categoria,
         grupo_funcional,
+        tipo_ativo,
         fabricante_id,
         modelo_referencia,
         descricao,
@@ -121,8 +140,8 @@ BEGIN
     VALUES (
         v_localizacao_prat,
         v_localizacao::localizacao_enum,
-        v_categoria::categoria_enum,
         v_grupo_funcional::grupo_funcional_enum,
+        v_tipo_ativo,
         v_fabricante_id,
         v_modelo_ref,
         v_descricao,
@@ -134,165 +153,27 @@ BEGIN
     RETURNING id INTO v_item_id;
 
     -- =========================================================================
-    -- 5. ROTEAMENTO PARA TABELA DE EXTENSÃO
-    --    IF/ELSIF baseado no grupo_funcional derivado no passo 2.
+    -- 6. INSERT EM item_especificacoes (sempre, mesmo que vazio)
+    --    O JSONB de especificações técnicas é enviado pelo frontend já montado.
     -- =========================================================================
-
-    -- ------------------------------------------------------------------
-    -- EXTENSÃO 1: ext_protecao_chaveamento
-    -- Categorias: DISJUNTOR, MINI_DISJUNTOR, FUSIVEL, CHAVE, PARA_RAIO
-    -- ------------------------------------------------------------------
-    IF v_grupo_funcional = 'PROTECAO_CHAVEAMENTO' THEN
-
-        INSERT INTO ext_protecao_chaveamento (
-            item_id,
-            subtipo,
-            corrente_nominal_a,
-            tensao_nominal_v,
-            tensao_nominal_kv,
-            tipo_tensao,
-            numero_polos,
-            especificacoes
-        )
-        VALUES (
-            v_item_id,
-            p_dados->>'subtipo',
-            NULLIF(p_dados->>'corrente_nominal_a', '')::DECIMAL,
-            NULLIF(p_dados->>'tensao_nominal_v',   '')::INT,
-            NULLIF(p_dados->>'tensao_nominal_kv',  '')::DECIMAL,
-            NULLIF(p_dados->>'tipo_tensao',         '')::tipo_tensao_enum,
-            NULLIF(p_dados->>'numero_polos',        '')::numero_polos_enum,
-            CASE
-                WHEN p_dados->'especificacoes' IS NOT NULL
-                THEN (p_dados->>'especificacoes')::JSONB
-                ELSE NULL
-            END
-        );
-
-    -- ------------------------------------------------------------------
-    -- EXTENSÃO 2: ext_acionamento_controle
-    -- Categorias: CONTATOR, RELE, CONTATO_AUXILIAR, COMANDO_ELETRICO, SOFTSTARTER
-    -- ------------------------------------------------------------------
-    ELSIF v_grupo_funcional = 'ACIONAMENTO_CONTROLE' THEN
-
-        INSERT INTO ext_acionamento_controle (
-            item_id,
-            subtipo,
-            tensao_operacao_v,
-            tipo_tensao,
-            corrente_min_a,
-            corrente_max_a,
-            corrente_nominal_a,
-            contatos_na,
-            contatos_nf,
-            especificacoes
-        )
-        VALUES (
-            v_item_id,
-            p_dados->>'subtipo',
-            NULLIF(p_dados->>'tensao_operacao_v',   '')::INT,
-            NULLIF(p_dados->>'tipo_tensao',          '')::tipo_tensao_enum,
-            NULLIF(p_dados->>'corrente_min_a',       '')::DECIMAL,
-            NULLIF(p_dados->>'corrente_max_a',       '')::DECIMAL,
-            NULLIF(p_dados->>'corrente_nominal_a',   '')::DECIMAL,
-            NULLIF(p_dados->>'contatos_na',          '')::INT,
-            NULLIF(p_dados->>'contatos_nf',          '')::INT,
-            CASE
-                WHEN p_dados->'especificacoes' IS NOT NULL
-                THEN (p_dados->>'especificacoes')::JSONB
-                ELSE NULL
-            END
-        );
-
-    -- ------------------------------------------------------------------
-    -- EXTENSÃO 3: ext_transformadores
-    -- Categorias: TC, TT, AUTOTRANSFORMADOR, INVERSOR_FREQUENCIA, REGULADOR
-    -- ------------------------------------------------------------------
-    ELSIF v_grupo_funcional = 'TRANSFORMADORES' THEN
-
-        INSERT INTO ext_transformadores (
-            item_id,
-            subtipo,
-            tensao_entrada_v,
-            tensao_saida_v,
-            potencia_va,
-            corrente_saida_a,
-            especificacoes
-        )
-        VALUES (
-            v_item_id,
-            p_dados->>'subtipo',
-            NULLIF(p_dados->>'tensao_entrada_v',  '')::INT,
-            NULLIF(p_dados->>'tensao_saida_v',    '')::INT,
-            NULLIF(p_dados->>'potencia_va',       '')::DECIMAL,
-            NULLIF(p_dados->>'corrente_saida_a',  '')::DECIMAL,
-            CASE
-                WHEN p_dados->'especificacoes' IS NOT NULL
-                THEN (p_dados->>'especificacoes')::JSONB
-                ELSE NULL
-            END
-        );
-
-    -- ------------------------------------------------------------------
-    -- EXTENSÃO 4: ext_automacao_medicao
-    -- Categorias: CLP_IHM, USCA, INSTRUMENTO_SENSOR, CAPACITOR
-    -- ------------------------------------------------------------------
-    ELSIF v_grupo_funcional = 'AUTOMACAO_MEDICAO' THEN
-
-        INSERT INTO ext_automacao_medicao (
-            item_id,
-            subtipo,
-            tensao_alimentacao_v,
-            especificacoes
-        )
-        VALUES (
-            v_item_id,
-            p_dados->>'subtipo',
-            NULLIF(p_dados->>'tensao_alimentacao_v', '')::INT,
-            CASE
-                WHEN p_dados->'especificacoes' IS NOT NULL
-                THEN (p_dados->>'especificacoes')::JSONB
-                ELSE NULL
-            END
-        );
-
-    -- ------------------------------------------------------------------
-    -- EXTENSÃO 5: ext_infraestrutura
-    -- Categorias: ILUMINACAO, CONECTIVIDADE, FERRAMENTAL_ATUADOR,
-    --             FIXADOR_FERRAGEM, CONDUTOR, INFRA_ACONDICIONAMENTO,
-    --             TERMINAL_CONEXAO, DISPOSITIVO_MANOBRA, BATERIA_FONTE, KIT_CONJUNTO
-    -- ------------------------------------------------------------------
-    ELSE
-
-        INSERT INTO ext_infraestrutura (
-            item_id,
-            subtipo,
-            tensao_v,
-            corrente_a,
-            especificacoes
-        )
-        VALUES (
-            v_item_id,
-            p_dados->>'subtipo',
-            NULLIF(p_dados->>'tensao_v',   '')::INT,
-            NULLIF(p_dados->>'corrente_a', '')::DECIMAL,
-            CASE
-                WHEN p_dados->'especificacoes' IS NOT NULL
-                THEN (p_dados->>'especificacoes')::JSONB
-                ELSE NULL
-            END
-        );
-
-    END IF;
+    INSERT INTO item_especificacoes (item_id, especificacoes)
+    VALUES (
+        v_item_id,
+        CASE
+            WHEN p_dados->'especificacoes' IS NOT NULL
+            THEN (p_dados->>'especificacoes')::JSONB
+            ELSE '{}'::JSONB
+        END
+    );
 
     -- =========================================================================
-    -- 6. RETORNO
+    -- 7. RETORNO
     -- =========================================================================
     v_resultado := json_build_object(
-        'id',              v_item_id,
-        'categoria',       v_categoria,
-        'grupo_funcional', v_grupo_funcional,
-        'status',          'ok'
+        'id',               v_item_id,
+        'grupo_funcional',  v_grupo_funcional,
+        'tipo_ativo',       v_tipo_ativo,
+        'status',           'ok'
     );
 
     RETURN v_resultado;
@@ -303,67 +184,46 @@ EXCEPTION
 END;
 $$;
 
--- =============================================================================
--- GRANT para a role anônima do PostgREST (db-anon-role = postgres no conf)
--- Como a role anon é 'postgres' (superuser), o GRANT é opcional mas fica aqui
--- como referência para quando a role for separada em produção.
--- =============================================================================
 -- GRANT EXECUTE ON FUNCTION inserir_item_estoque(JSON) TO web_anon;
 
 -- =============================================================================
--- SMOKE TEST (execute manualmente para validar após criar a procedure)
+-- SMOKE TESTS
 -- =============================================================================
 /*
--- Teste 1: DISJUNTOR
+-- Disjuntor
 SELECT inserir_item_estoque('{
-    "categoria":         "DISJUNTOR",
-    "descricao":         "Disjuntor Motor Tripolar 380V 7,5CV — Smoke Test",
-    "quantidade":        1,
-    "condicao":          "NOVO",
-    "status":            "DISPONIVEL",
-    "localizacao":       "GARAGEM",
+    "grupo_funcional":    "PROTECAO_CHAVEAMENTO",
+    "tipo_ativo":         "DISJUNTOR",
+    "quantidade":         3,
+    "localizacao":        "GARAGEM",
     "localizacao_prateleira": "DJ 01",
-    "fabricante_apelido":"Siemens",
-    "modelo_referencia": "3VU13",
-    "subtipo":           "Motor",
-    "corrente_nominal_a":"17.5",
-    "tensao_nominal_v":  "380",
-    "tipo_tensao":       "AC",
-    "numero_polos":      "TRIPOLAR"
+    "fabricante_apelido": "Siemens",
+    "modelo_referencia":  "3VU13",
+    "especificacoes": "{\"tipo\": \"Motor\", \"polos\": \"Tripolar\", \"tensao_v\": 380, \"corrente_a\": 17.5, \"potencia_kw\": 5.5}"
 }'::JSON);
 
--- Teste 2: TC
+-- Cabo
 SELECT inserir_item_estoque('{
-    "categoria":         "TC",
-    "descricao":         "TC Bipartido 300/5A 0,6kV — Smoke Test",
-    "quantidade":        3,
-    "condicao":          "USADO",
-    "status":            "DISPONIVEL",
-    "localizacao":       "GARAGEM",
-    "localizacao_prateleira": "TC 01",
-    "fabricante_apelido":"Lier",
-    "subtipo":           "Bipartido",
-    "especificacoes":    "{\"relacao_primario_a\": 300, \"relacao_secundario_a\": 5}"
+    "grupo_funcional": "CONDUTORES",
+    "tipo_ativo":      "CABO",
+    "quantidade":      200,
+    "localizacao":     "GALPAO",
+    "fabricante_apelido": "Pirastic",
+    "especificacoes": "{\"material\": \"Cobre\", \"bitola_mm2\": 16.0, \"tensao_v\": 750, \"isolamento\": \"PVC 450/750V\"}"
 }'::JSON);
 
--- Teste 3: RELE
+-- Relé
 SELECT inserir_item_estoque('{
-    "categoria":         "RELE",
-    "descricao":         "Relé Temporizador 24VDC — Smoke Test",
-    "quantidade":        2,
-    "condicao":          "NOVO",
-    "status":            "DISPONIVEL",
-    "localizacao":       "MEZANINO",
-    "fabricante_apelido":"Schneider",
+    "grupo_funcional": "PROTECAO_CHAVEAMENTO",
+    "tipo_ativo":      "RELE",
+    "quantidade":      2,
+    "localizacao":     "MEZANINO",
+    "fabricante_apelido": "Schneider",
     "modelo_referencia": "RE7TL11BU",
-    "subtipo":           "Temporizador",
-    "tensao_operacao_v": "24",
-    "tipo_tensao":       "DC",
-    "contatos_na":       "1",
-    "contatos_nf":       "1"
+    "especificacoes": "{\"tipo\": \"Temporizador\", \"corrente_min_a\": 0.1, \"corrente_max_a\": 30, \"contatos_na\": 1, \"contatos_nf\": 1, \"faixa_tempo_s\": 30}"
 }'::JSON);
 
--- Verificar resultados:
-SELECT id, categoria, descricao FROM items ORDER BY criado_em DESC LIMIT 5;
+-- Verificar:
+SELECT id, grupo_funcional, tipo_ativo, descricao FROM items ORDER BY criado_em DESC LIMIT 5;
 SELECT * FROM v_estoque_completo ORDER BY criado_em DESC LIMIT 5;
 */

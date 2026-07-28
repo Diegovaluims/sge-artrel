@@ -142,3 +142,29 @@
   margin-top: 0.5rem;
   transition: all 0.2s ease;
 }
+
+/* --- CorrenteInput: select padrão + input numérico lado a lado ------------ */
+.corrente-input-group .corrente-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.corrente-input-group .corrente-select {
+  flex: 0 0 110px;
+  font-size: 0.8rem;
+}
+
+.corrente-input-group input[type="number"] {
+  flex: 1;
+  min-width: 80px;
+}
+
+/* --- Placeholder para ativos sem campos definidos ------------------------- */
+.specs-placeholder {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0.75rem 0 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--color-border);
+}

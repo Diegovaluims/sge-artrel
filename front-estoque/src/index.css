@@ -114,6 +114,11 @@ label {
   text-transform: uppercase;
 }
 
+.required-label::after {
+  content: " *";
+  color: var(--color-error);
+}
+
 /* --- Botões globais ------------------------------------------------------- */
 button {
   font-family: var(--font-sans);

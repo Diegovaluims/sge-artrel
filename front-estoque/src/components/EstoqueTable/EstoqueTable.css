@@ -143,11 +143,11 @@
   white-space: nowrap;
 }
 
-.cat-tag.PROTECAO_CHAVEAMENTO  { background: rgba(249,115,22,.15); color: var(--tag-protecao); }
-.cat-tag.ACIONAMENTO_CONTROLE  { background: rgba(139,92,246,.15); color: var(--tag-acionamento); }
-.cat-tag.TRANSFORMADORES       { background: rgba(6,182,212,.15);  color: var(--tag-transformadores); }
-.cat-tag.AUTOMACAO_MEDICAO     { background: rgba(16,185,129,.15); color: var(--tag-automacao); }
-.cat-tag.INFRAESTRUTURA        { background: rgba(100,116,139,.15);color: var(--tag-infra); }
+.cat-tag.PROTECAO_CHAVEAMENTO    { background: rgba(249,115,22,.15);  color: #f97316; }
+.cat-tag.CONDUTORES              { background: rgba(234,179,8,.15);   color: #ca8a04; }
+.cat-tag.PAINEL_AUTOMACAO        { background: rgba(139,92,246,.15);  color: #8b5cf6; }
+.cat-tag.INFRAESTRUTURA_FERRAGEM { background: rgba(100,116,139,.15); color: #64748b; }
+.cat-tag.TRANSFORMADORES         { background: rgba(6,182,212,.15);   color: #06b6d4; }
 
 /* --- Badge de status ------------------------------------------------------ */
 .status-badge {
@@ -172,3 +172,42 @@
 }
 
 .qty-cell.zero { color: var(--color-error); }
+
+/* --- Modo de Edição ------------------------------------------------------- */
+.estoque-edit-btn {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.estoque-edit-btn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.estoque-edit-btn.active {
+  background: rgba(99,102,241,.15);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.row-editavel {
+  cursor: default;
+}
+
+.row-edit-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.row-edit-btn:hover {
+  background: rgba(99,102,241,.12);
+  border-color: rgba(99,102,241,.4);
+  color: var(--color-accent);
+}
