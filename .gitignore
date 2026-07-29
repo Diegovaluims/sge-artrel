@@ -24,9 +24,9 @@ dist-ssr
 *.sw?
 postgrest.conf
 start-postgrest.bat
-mds/*
-pdfs/*
-csvs/*
+mds/
+pdfs/
+csvs/
 .gitignore
 .agents/
 MEMORY.md
