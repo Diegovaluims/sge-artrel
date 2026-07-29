@@ -7,6 +7,18 @@
 -- =============================================================================
 
 -- =============================================================================
+-- CHECKLIST: ao adicionar um novo grupo_funcional, atualizar:
+--   1. grupo_funcional_enum        (schema.sql — este arquivo)
+--   2. CASE v_grupo_funcional      (inserir_item_estoque.sql)
+--   3. CASE v_grupo_funcional      (atualizar_item_estoque.sql)
+--   4. ATIVOS_POR_GRUPO / GRUPO_COR (ExtensaoFields.jsx)
+--   5. GRUPOS                      (ItemForm.jsx)
+--   6. hidratarSpecs / LABEL_ATIVO (EditModal.jsx)
+--   7. LABEL_ATIVO                 (EstoqueTable.jsx)
+-- =============================================================================
+
+
+-- =============================================================================
 -- TIPOS DE CONTROLE (invariantes)
 -- =============================================================================
 
@@ -39,8 +51,11 @@ CREATE TYPE localizacao_enum AS ENUM (
 
 CREATE TYPE grupo_funcional_enum AS ENUM (
     'PROTECAO_CHAVEAMENTO',    -- Proteção e Chaveamento
+    'CONTATORES',              -- Contatores
     'CONDUTORES',              -- Condutores
+    'DISPOSITIVOS_PARTIDA',    -- Dispositivos de Partida
     'PAINEL_AUTOMACAO',        -- Painéis e Automação
+    'ACESSORIOS',              -- Acessórios
     'INFRAESTRUTURA_FERRAGEM', -- Infraestrutura e Ferragem
     'TRANSFORMADORES'          -- Transformadores
 );
@@ -88,6 +103,23 @@ CREATE TYPE transformadores_enum AS ENUM (
     'TRANSFORMADOR_TENSAO',
     'TRANSFORMADOR_CORRENTE',
     'AUTOTRANSFORMADOR'
+);
+
+-- Contatores (novo grupo)
+CREATE TYPE contatores_enum AS ENUM (
+    'CONTATOR'
+);
+
+-- Dispositivos de Partida (novo grupo)
+CREATE TYPE dispositivos_partida_enum AS ENUM (
+    'SOFTSTARTER',
+    'INVERSOR',
+    'CHAVE_COMPENSADORA'
+);
+
+-- Acessórios (novo grupo)
+CREATE TYPE acessorios_enum AS ENUM (
+    'CONTATO_AUXILIAR'
 );
 
 -- =============================================================================

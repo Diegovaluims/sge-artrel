@@ -92,6 +92,21 @@ BEGIN
                 RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo TRANSFORMADORES', v_tipo_ativo;
             END IF;
 
+        WHEN 'CONTATORES' THEN
+            IF v_tipo_ativo NOT IN ('CONTATOR') THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo CONTATORES', v_tipo_ativo;
+            END IF;
+
+        WHEN 'DISPOSITIVOS_PARTIDA' THEN
+            IF v_tipo_ativo NOT IN ('SOFTSTARTER','INVERSOR','CHAVE_COMPENSADORA') THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo DISPOSITIVOS_PARTIDA', v_tipo_ativo;
+            END IF;
+
+        WHEN 'ACESSORIOS' THEN
+            IF v_tipo_ativo NOT IN ('CONTATO_AUXILIAR') THEN
+                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo ACESSORIOS', v_tipo_ativo;
+            END IF;
+
         ELSE
             RAISE EXCEPTION 'grupo_funcional inválido: %', v_grupo_funcional;
     END CASE;

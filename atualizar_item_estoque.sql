@@ -3,7 +3,7 @@
 -- Arquivo: atualizar_item_estoque.sql
 -- Executar: psql -d prototipo-artrel -f atualizar_item_estoque.sql
 --
--- Endpoint: POST http://localhost:3000/rpc/atualizar_item_estoque
+-- Endpoint: POST http://localhost:3001/rpc/atualizar_item_estoque
 -- Body:      { "p_id": "<uuid>", "p_dados": { ...campos... } }
 --
 -- A procedure atualiza items e item_especificacoes.
