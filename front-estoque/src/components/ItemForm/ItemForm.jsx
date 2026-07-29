@@ -6,8 +6,9 @@ import { useState, useEffect } from 'react';
 import { POSTGREST_URL } from '../../config.js';
 import {
   ATIVOS_POR_GRUPO, GRUPO_COR, CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
-  ExtProtecaoChaveamento, ExtCondutores,
-  ExtPainelAutomacao, ExtInfraestruturaFerragem, ExtTransformadores,
+  ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
+  ExtDispositivosPartida, ExtPainelAutomacao, ExtAcessorios,
+  ExtInfraestruturaFerragem, ExtTransformadores,
 } from './ExtensaoFields.jsx';
 import NumberInput from '../NumberInput/NumberInput.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -15,9 +16,12 @@ import './ItemForm.css';
 
 const GRUPOS = [
   { value: 'PROTECAO_CHAVEAMENTO',    label: 'Proteção e Chaveamento' },
+  { value: 'CONTATORES',              label: 'Contatores' },
   { value: 'CONDUTORES',              label: 'Condutores' },
+  { value: 'DISPOSITIVOS_PARTIDA',    label: 'Dispositivos de Partida' },
   { value: 'PAINEL_AUTOMACAO',        label: 'Painéis e Automação' },
-  { value: 'INFRAESTRUTURA_FERRAGEM', label: 'Infraestrutura e Ferragem' },
+  { value: 'ACESSORIOS',              label: 'Acessórios' },
+  { value: 'INFRAESTRUTURA_FERRAGEM', label: 'Infraestrutura, Ferragem e Terminações' },
   { value: 'TRANSFORMADORES',         label: 'Transformadores' },
 ];
 
@@ -122,7 +126,7 @@ export default function ItemForm({ onItemSalvo }) {
     <div className="item-form-wrapper">
       <div className="item-form-header">
         <h2>Cadastrar Item de Estoque</h2>
-        <p>Selecione o grupo e o tipo do ativo. Os campos de especificação aparecem em seguida.</p>
+        <p>Selecione a categoria e, depois, o tipo do ativo. Os campos de especificações técnicas aparecem em seguida.</p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -239,8 +243,11 @@ export default function ItemForm({ onItemSalvo }) {
               )}
             </div>
             {grupo === 'PROTECAO_CHAVEAMENTO'    && <ExtProtecaoChaveamento    form={form} onChange={handleChange} />}
+            {grupo === 'CONTATORES'              && <ExtContatores             form={form} onChange={handleChange} />}
             {grupo === 'CONDUTORES'              && <ExtCondutores             form={form} onChange={handleChange} />}
+            {grupo === 'DISPOSITIVOS_PARTIDA'    && <ExtDispositivosPartida    form={form} onChange={handleChange} />}
             {grupo === 'PAINEL_AUTOMACAO'        && <ExtPainelAutomacao        form={form} onChange={handleChange} />}
+            {grupo === 'ACESSORIOS'              && <ExtAcessorios             form={form} onChange={handleChange} />}
             {grupo === 'INFRAESTRUTURA_FERRAGEM' && <ExtInfraestruturaFerragem form={form} onChange={handleChange} />}
             {grupo === 'TRANSFORMADORES'         && <ExtTransformadores        form={form} onChange={handleChange} />}
           </div>

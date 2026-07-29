@@ -8,8 +8,9 @@ import { POSTGREST_URL } from '../../config.js';
 import {
   GRUPO_COR,
   CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
-  ExtProtecaoChaveamento, ExtCondutores,
-  ExtPainelAutomacao, ExtInfraestruturaFerragem, ExtTransformadores,
+  ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
+  ExtDispositivosPartida, ExtPainelAutomacao, ExtAcessorios,
+  ExtInfraestruturaFerragem, ExtTransformadores,
 } from '../ItemForm/ExtensaoFields.jsx';
 import NumberInput from '../NumberInput/NumberInput.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -17,26 +18,30 @@ import './EditModal.css';
 
 // Rótulos de ativo (mesma referência da EstoqueTable, definida localmente para isolamento)
 const LABEL_ATIVO = {
-  DISJUNTOR:               'Disjuntor',
-  MINI_DISJUNTOR:          'Mini-Disjuntor',
-  RELE:                    'Relé',
-  FUSIVEL:                 'Fusível',
-  CHAVE:                   'Chave',
-  PARA_RAIO:               'Pará-Raio',
-  BARRA_ATERRAMENTO:       'Barra de Aterramento',
-  CABO:                    'Cabo',
-  BARRAMENTO:              'Barramento',
-  CAIXA:                   'Caixa',
-  PAINEL:                  'Painel',
-  SOFTSTARTER:             'Softstarter',
-  INVERSOR:                'Inversor',
-  PARAFUSO:                'Parafuso',
-  PORCA:                   'Porca',
-  ARRUELA:                 'Arruela',
-  TERMINAL:                'Terminal',
-  TRANSFORMADOR_TENSAO:    'Transf. de Tensão',
-  TRANSFORMADOR_CORRENTE:  'Transf. de Corrente',
-  AUTOTRANSFORMADOR:       'Autotransformador',
+  DISJUNTOR: 'Disjuntor',
+  MINI_DISJUNTOR: 'Mini-Disjuntor',
+  RELE: 'Relé',
+  FUSIVEL: 'Fusível',
+  CHAVE: 'Chave',
+  PARA_RAIO: 'Pára-Raio',
+  BARRA_ATERRAMENTO: 'Barra de Aterramento',
+  CONTATOR: 'Contator',
+  CABO: 'Cabo',
+  BARRAMENTO: 'Barramento',
+  BARRA_CHATA: 'Barra Chata',
+  SOFTSTARTER: 'Softstarter',
+  INVERSOR: 'Inversor',
+  CHAVE_COMPENSADORA: 'Chave Compensadora',
+  CAIXA: 'Caixa',
+  PAINEL: 'Painel',
+  CONTATOS_AUXILIARES: 'Contatos Auxiliares',
+  PARAFUSO: 'Parafuso',
+  PORCA: 'Porca',
+  ARRUELA: 'Arruela',
+  TERMINAL: 'Terminal',
+  TRANSFORMADOR_TENSAO: 'Transf. de Tensão',
+  TRANSFORMADOR_CORRENTE: 'Transf. de Corrente',
+  AUTOTRANSFORMADOR: 'Autotransformador',
 };
 
 // Achata especificacoes JSONB para o estado flat de specs
@@ -44,9 +49,17 @@ function hidratarSpecs(tipoAtivo, jsonb) {
   if (!jsonb || typeof jsonb !== 'object') return {};
   const g = (key, fallback = '') => jsonb[key] !== undefined ? String(jsonb[key]) : fallback;
 
+  const specsEletricas = {
+    ce_tipo_corrente:     g('tipo_corrente'),
+    ce_corrente_min_a:    g('corrente_min_a'),
+    ce_corrente_cc:       g('corrente_cc'),
+    ce_tensao_isolamento: g('tensao_isolamento'),
+  };
+
   switch (tipoAtivo) {
     case 'DISJUNTOR':
       return {
+        ...specsEletricas,
         dj_tipo:        g('tipo'),
         dj_polos:       g('polos'),
         dj_tensao_v:    g('tensao_v'),
@@ -55,34 +68,69 @@ function hidratarSpecs(tipoAtivo, jsonb) {
       };
     case 'MINI_DISJUNTOR':
       return {
+        ...specsEletricas,
+        md_curva:     g('curva'),
+        md_polos:     g('polos'),
+        md_tensao_v:  g('tensao_v'),
         md_corrente_a: g('corrente_a'),
-        md_curva:      g('curva'),
-        md_polos:      g('polos'),
       };
     case 'RELE':
       return {
-        rl_tipo:           g('tipo'),
-        rl_corrente_min_a: g('corrente_min_a'),
-        rl_corrente_max_a: g('corrente_max_a'),
-        rl_contatos_na:    g('contatos_na'),
-        rl_contatos_nf:    g('contatos_nf'),
-        rl_faixa_tempo_s:  g('faixa_tempo_s'),
+        ...specsEletricas,
+        rl_tipo:          g('tipo'),
+        rl_tensao_v:      g('tensao_v'),
+        rl_corrente_a:    g('corrente_a'),
+        rl_contatos_na:   g('contatos_na'),
+        rl_contatos_nf:   g('contatos_nf'),
+        rl_faixa_tempo_s: g('faixa_tempo_s'),
       };
     case 'FUSIVEL':
-      return { fus_tipo: g('tipo'), fus_corrente_a: g('corrente_a') };
+      return {
+        ...specsEletricas,
+        fus_tipo:      g('tipo'),
+        fus_tensao_v:  g('tensao_v'),
+        fus_corrente_a: g('corrente_a'),
+      };
     case 'CHAVE':
-      return { chv_tipo: g('tipo'), chv_tensao_v: g('tensao_v'), chv_corrente_a: g('corrente_a') };
+      return {
+        ...specsEletricas,
+        chv_tipo:      g('tipo'),
+        chv_tensao_v:  g('tensao_v'),
+        chv_corrente_a: g('corrente_a'),
+      };
     case 'PARA_RAIO':
-      return { pr_material: g('material'), pr_tensao_v: g('tensao_v'), pr_corrente_ka: g('corrente_ka') };
+      return {
+        ...specsEletricas,
+        pr_material:   g('material'),
+        pr_tensao_v:   g('tensao_v'),
+        pr_corrente_ka: g('corrente_ka'),
+      };
     case 'CABO':
       return {
+        ...specsEletricas,
         cb_material:   g('material'),
         cb_bitola_mm2: g('bitola_mm2'),
-        cb_tensao_v:   g('tensao_v'),
         cb_isolamento: g('isolamento'),
       };
+    case 'CONTATOR':
+      return {
+        ...specsEletricas,
+        ct_tipo:        g('tipo'),
+        ct_polos:       g('polos'),
+        ct_tensao_v:    g('tensao_v'),
+        ct_corrente_a:  g('corrente_a'),
+        ct_contatos_na: g('contatos_na'),
+        ct_contatos_nf: g('contatos_nf'),
+      };
+    case 'CONTATOS_AUXILIARES':
+      return {
+        ...specsEletricas,
+        ca_contatos_na: g('contatos_na'),
+        ca_contatos_nf: g('contatos_nf'),
+        ca_corrente_a:  g('corrente_a'),
+      };
     default:
-      return {};
+      return specsEletricas;
   }
 }
 
@@ -97,18 +145,18 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
     setFeedback(null);
     setForm({
       // Campos base editáveis
-      descricao:              item.descricao              || '',
-      fabricante_id:          String(item.fabricante_id  ?? ''),
-      modelo_referencia:      item.modelo_referencia      || '',
-      quantidade:             String(item.quantidade      ?? 0),
-      condicao:               item.condicao               || 'NOVO',
-      status:                 item.status                 || 'DISPONIVEL',
-      localizacao:            item.localizacao            || 'GARAGEM',
+      descricao: item.descricao || '',
+      fabricante_id: String(item.fabricante_id ?? ''),
+      modelo_referencia: item.modelo_referencia || '',
+      quantidade: String(item.quantidade ?? 0),
+      condicao: item.condicao || 'NOVO',
+      status: item.status || 'DISPONIVEL',
+      localizacao: item.localizacao || 'GARAGEM',
       localizacao_prateleira: item.localizacao_prateleira || '',
-      observacoes:            item.observacoes            || '',
+      observacoes: item.observacoes || '',
       // Imutáveis — usados pelos Ext* para renderização correta
       grupo_funcional: item.grupo_funcional || '',
-      tipo_ativo:      item.tipo_ativo      || '',
+      tipo_ativo: item.tipo_ativo || '',
       // Specs hidratadas do JSONB
       ...ESTADO_SPECS,
       ...hidratarSpecs(item.tipo_ativo, item.especificacoes),
@@ -188,7 +236,7 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
 
   if (!item || !form) return null;
 
-  const grupo    = item.grupo_funcional || '';
+  const grupo = item.grupo_funcional || '';
   const grupoCor = GRUPO_COR[grupo] || null;
   const labelAtivo = LABEL_ATIVO[item.tipo_ativo] || item.tipo_ativo || '';
 
@@ -338,8 +386,11 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
                 </div>
                 {/* tipo_ativo readonly — apenas campos de spec */}
                 {grupo === 'PROTECAO_CHAVEAMENTO'    && <ExtProtecaoChaveamento    form={form} onChange={handleChange} />}
+                {grupo === 'CONTATORES'              && <ExtContatores             form={form} onChange={handleChange} />}
                 {grupo === 'CONDUTORES'              && <ExtCondutores             form={form} onChange={handleChange} />}
+                {grupo === 'DISPOSITIVOS_PARTIDA'    && <ExtDispositivosPartida    form={form} onChange={handleChange} />}
                 {grupo === 'PAINEL_AUTOMACAO'        && <ExtPainelAutomacao        form={form} onChange={handleChange} />}
+                {grupo === 'ACESSORIOS'              && <ExtAcessorios             form={form} onChange={handleChange} />}
                 {grupo === 'INFRAESTRUTURA_FERRAGEM' && <ExtInfraestruturaFerragem form={form} onChange={handleChange} />}
                 {grupo === 'TRANSFORMADORES'         && <ExtTransformadores        form={form} onChange={handleChange} />}
               </div>

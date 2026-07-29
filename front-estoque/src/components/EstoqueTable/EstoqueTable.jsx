@@ -18,12 +18,16 @@ const LABEL_ATIVO = {
   CHAVE:                   'Chave',
   PARA_RAIO:               'Pára-Raio',
   BARRA_ATERRAMENTO:       'Barra de Aterramento',
+  CONTATOR:                'Contator',
   CABO:                    'Cabo',
   BARRAMENTO:              'Barramento',
-  CAIXA:                   'Caixa',
-  PAINEL:                  'Painel',
+  BARRA_CHATA:             'Barra Chata',
   SOFTSTARTER:             'Softstarter',
   INVERSOR:                'Inversor',
+  CHAVE_COMPENSADORA:      'Chave Compensadora',
+  CAIXA:                   'Caixa',
+  PAINEL:                  'Painel',
+  CONTATOS_AUXILIARES:     'Contatos Auxiliares',
   PARAFUSO:                'Parafuso',
   PORCA:                   'Porca',
   ARRUELA:                 'Arruela',
@@ -50,6 +54,10 @@ function getInfoTecnica(row) {
   if (spec.material)     partes.push(spec.material);
   if (spec.bitola_mm2)   partes.push(`${spec.bitola_mm2} mm²`);
   if (spec.isolamento)   partes.push(spec.isolamento);
+  if (spec.tipo_corrente)    partes.push(spec.tipo_corrente);
+  if (spec.corrente_cc)      partes.push(`Icc: ${spec.corrente_cc} kA`);
+  if (spec.tensao_isolamento) partes.push(`Ui: ${spec.tensao_isolamento} V`);
+
 
   return partes.length > 0 ? partes.join(' · ') : '—';
 }
