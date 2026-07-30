@@ -19,6 +19,18 @@
 
 
 -- =============================================================================
+-- ROLE WEB_ANON E PRIVILÉGIOS (POSTGREST)
+-- =============================================================================
+DO $$
+BEGIN
+  CREATE ROLE web_anon NOLOGIN;
+EXCEPTION WHEN DUPLICATE_OBJECT THEN
+  RAISE NOTICE 'not creating role web_anon -- it already exists';
+END
+$$;
+GRANT USAGE ON SCHEMA public TO web_anon;
+
+-- =============================================================================
 -- TIPOS DE CONTROLE (invariantes)
 -- =============================================================================
 
@@ -61,66 +73,66 @@ CREATE TYPE grupo_funcional_enum AS ENUM (
 );
 
 -- =============================================================================
--- ENUMs DE ATIVOS POR GRUPO
--- Um ENUM por grupo para facilitar manutenção e modularidade.
+-- TABELA DE DOMÍNIO: tipos_ativo
+-- Centraliza os tipos e grupos funcionais para o frontend consumir.
 -- =============================================================================
 
--- Proteção e Chaveamento
-CREATE TYPE protecao_chaveamento_enum AS ENUM (
-    'DISJUNTOR',
-    'MINI_DISJUNTOR',
-    'RELE',
-    'FUSIVEL',
-    'CHAVE',
-    'PARA_RAIO',
-    'BARRA_ATERRAMENTO'  -- campos a definir; aceita JSONB livre
+CREATE TABLE tipos_ativo (
+    id SERIAL PRIMARY KEY,
+    grupo_funcional grupo_funcional_enum NOT NULL,
+    tipo_ativo TEXT NOT NULL UNIQUE
 );
 
--- Condutores
-CREATE TYPE condutores_enum AS ENUM (
-    'CABO',
-    'BARRAMENTO'         -- campos a definir; aceita JSONB livre
-);
-
--- Painéis e Automação (placeholders — campos a definir)
-CREATE TYPE painel_automacao_enum AS ENUM (
-    'CAIXA',
-    'PAINEL',
-    'SOFTSTARTER',
-    'INVERSOR'
-);
-
--- Infraestrutura e Ferragem (placeholders — campos a definir)
-CREATE TYPE infraestrutura_ferragem_enum AS ENUM (
-    'PARAFUSO',
-    'PORCA',
-    'ARRUELA',
-    'TERMINAL'
-);
-
--- Transformadores
-CREATE TYPE transformadores_enum AS ENUM (
-    'TRANSFORMADOR_TENSAO',
-    'TRANSFORMADOR_CORRENTE',
-    'AUTOTRANSFORMADOR'
-);
-
--- Contatores (novo grupo)
-CREATE TYPE contatores_enum AS ENUM (
-    'CONTATOR'
-);
-
--- Dispositivos de Partida (novo grupo)
-CREATE TYPE dispositivos_partida_enum AS ENUM (
-    'SOFTSTARTER',
-    'INVERSOR',
-    'CHAVE_COMPENSADORA'
-);
-
--- Acessórios (novo grupo)
-CREATE TYPE acessorios_enum AS ENUM (
-    'CONTATO_AUXILIAR'
-);
+INSERT INTO tipos_ativo (grupo_funcional, tipo_ativo) VALUES
+-- PROTECAO_CHAVEAMENTO
+('PROTECAO_CHAVEAMENTO', 'DISJUNTOR'),
+('PROTECAO_CHAVEAMENTO', 'MINI_DISJUNTOR'),
+('PROTECAO_CHAVEAMENTO', 'RELE'),
+('PROTECAO_CHAVEAMENTO', 'FUSIVEL'),
+('PROTECAO_CHAVEAMENTO', 'CHAVE'),
+('PROTECAO_CHAVEAMENTO', 'PARA-RAIO'),
+('PROTECAO_CHAVEAMENTO', 'BARRA_DE_ATERRAMENTO'),
+-- CONDUTORES
+('CONDUTORES', 'CABO'),
+('CONDUTORES', 'BARRAMENTO'),
+('CONDUTORES', 'BARRA_CHATA'),
+-- CONTATORES
+('CONTATORES', 'CONTATOR'),
+-- DISPOSITIVOS_PARTIDA
+('DISPOSITIVOS_PARTIDA', 'SOFTSTARTER'),
+('DISPOSITIVOS_PARTIDA', 'INVERSOR'),
+('DISPOSITIVOS_PARTIDA', 'CHAVE_COMPENSADORA'),
+-- PAINEL_AUTOMACAO
+('PAINEL_AUTOMACAO', 'CAIXA'),
+('PAINEL_AUTOMACAO', 'PAINEL'),
+('PAINEL_AUTOMACAO', 'BOTAO'),
+('PAINEL_AUTOMACAO', 'BOTOEIRA'),
+('PAINEL_AUTOMACAO', 'REGULADOR'),
+('PAINEL_AUTOMACAO', 'CLP'),
+('PAINEL_AUTOMACAO', 'SOLENOIDE'),
+('PAINEL_AUTOMACAO', 'CAPACITOR'),
+-- ACESSORIOS
+('ACESSORIOS', 'CONTATO_AUXILIAR'),
+('ACESSORIOS', 'EXTINTOR'),
+('ACESSORIOS', 'PUNHO_MANOBRA'),
+('ACESSORIOS', 'CURVA'),
+-- INFRAESTRUTURA_FERRAGEM
+('INFRAESTRUTURA_FERRAGEM', 'PARAFUSO'),
+('INFRAESTRUTURA_FERRAGEM', 'PORCA'),
+('INFRAESTRUTURA_FERRAGEM', 'ARRUELA'),
+('INFRAESTRUTURA_FERRAGEM', 'TERMINAL'),
+('INFRAESTRUTURA_FERRAGEM', 'MUFLA'),
+('INFRAESTRUTURA_FERRAGEM', 'BUCHA'),
+('INFRAESTRUTURA_FERRAGEM', 'ELETRODUTO'),
+('INFRAESTRUTURA_FERRAGEM', 'ELETROCALHA'),
+('INFRAESTRUTURA_FERRAGEM', 'LEITO'),
+('INFRAESTRUTURA_FERRAGEM', 'CONDULETE'),
+('INFRAESTRUTURA_FERRAGEM', 'UNIDUTE'),
+('INFRAESTRUTURA_FERRAGEM', 'PLACA'),
+-- TRANSFORMADORES
+('TRANSFORMADORES', 'TRANSFORMADOR_DE_TENSAO'),
+('TRANSFORMADORES', 'TRANSFORMADOR_DE_CORRENTE'),
+('TRANSFORMADORES', 'AUTOTRANSFORMADOR');
 
 -- =============================================================================
 -- TABELA AUXILIAR: fabricantes
@@ -145,11 +157,10 @@ CREATE TABLE items (
     localizacao             localizacao_enum     NOT NULL,
 
     -- Classificação
-    -- grupo_funcional: um dos 5 grandes grupos
-    -- tipo_ativo: texto com valor do enum do respectivo grupo,
-    --             validado pela stored procedure inserir_item_estoque
+    -- grupo_funcional: um dos grandes grupos funcionais
+    -- tipo_ativo: chave estrangeira para a tabela de domínios tipos_ativo
     grupo_funcional         grupo_funcional_enum NOT NULL,
-    tipo_ativo              TEXT                 NOT NULL,
+    tipo_ativo              TEXT                 NOT NULL REFERENCES tipos_ativo(tipo_ativo) ON UPDATE CASCADE,
 
     -- Identificação do produto
     fabricante_id           INT REFERENCES fabricantes(id) ON DELETE RESTRICT,
@@ -189,6 +200,24 @@ CREATE TRIGGER trg_items_atualizado_em
 BEFORE UPDATE ON items
 FOR EACH ROW EXECUTE FUNCTION fn_set_atualizado_em();
 
+-- Trigger: Imutabilidade de grupo_funcional e tipo_ativo
+CREATE OR REPLACE FUNCTION fn_proteger_campos_imutaveis()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.grupo_funcional IS DISTINCT FROM OLD.grupo_funcional THEN
+        RAISE EXCEPTION 'grupo_funcional é imutável após o cadastro.';
+    END IF;
+    IF NEW.tipo_ativo IS DISTINCT FROM OLD.tipo_ativo THEN
+        RAISE EXCEPTION 'tipo_ativo é imutável após o cadastro.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_items_imutaveis
+BEFORE UPDATE ON items
+FOR EACH ROW EXECUTE FUNCTION fn_proteger_campos_imutaveis();
+
 -- =============================================================================
 -- TABELA UNIFICADA DE ESPECIFICAÇÕES TÉCNICAS
 -- Uma única tabela substitui as 5 ext_* anteriores.
@@ -208,10 +237,16 @@ CREATE INDEX idx_espec_jsonb ON item_especificacoes USING GIN (especificacoes);
 -- Registra UPDATE e SOFT_DELETE. usuario_id nullable para futura auth JWT.
 -- =============================================================================
 
+CREATE TYPE operacao_auditoria_enum AS ENUM (
+    'INSERT',
+    'UPDATE',
+    'SOFT_DELETE'
+);
+
 CREATE TABLE log_auditoria (
     id            BIGSERIAL  PRIMARY KEY,
     item_id       UUID       NOT NULL,
-    operacao      TEXT       NOT NULL CHECK (operacao IN ('UPDATE', 'SOFT_DELETE')),
+    operacao      operacao_auditoria_enum NOT NULL,
     payload_antes  JSONB,
     payload_depois JSONB,
     usuario_id    TEXT,      -- NULL agora; preenchido após integração Supabase Auth
@@ -354,3 +389,14 @@ INSERT INTO fabricantes (nome, apelido) VALUES
     ('Toshiba',                  'Toshiba'),
     -- Fallback
     ('Outros / Genérico',        'Outros');
+
+-- =============================================================================
+-- PERMISSÕES (GRANTs) PARA WEB_ANON
+-- =============================================================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON items TO web_anon;
+GRANT SELECT ON fabricantes TO web_anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON item_especificacoes TO web_anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON log_auditoria TO web_anon;
+GRANT SELECT ON tipos_ativo TO web_anon;
+GRANT SELECT ON v_estoque_completo TO web_anon;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO web_anon;

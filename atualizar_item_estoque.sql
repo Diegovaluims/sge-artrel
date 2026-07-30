@@ -3,7 +3,7 @@
 -- Arquivo: atualizar_item_estoque.sql
 -- Executar: psql -d prototipo-artrel -f atualizar_item_estoque.sql
 --
--- Endpoint: POST http://localhost:3001/rpc/atualizar_item_estoque
+-- Endpoint: POST http://localhost:3000/rpc/atualizar_item_estoque
 -- Body:      { "p_id": "<uuid>", "p_dados": { ...campos... } }
 --
 -- A procedure atualiza items e item_especificacoes.
@@ -71,9 +71,9 @@ BEGIN
     -- =========================================================================
     IF v_operacao = 'UPDATE' AND p_dados->'especificacoes' IS NOT NULL THEN
         INSERT INTO item_especificacoes (item_id, especificacoes)
-        VALUES (p_id, (p_dados->>'especificacoes')::JSONB)
+        VALUES (p_id, (p_dados->'especificacoes')::JSONB)
         ON CONFLICT (item_id) DO UPDATE
-            SET especificacoes = (p_dados->>'especificacoes')::JSONB;
+            SET especificacoes = item_especificacoes.especificacoes || (p_dados->'especificacoes')::JSONB;
     END IF;
 
     -- =========================================================================
@@ -99,7 +99,7 @@ EXCEPTION
 END;
 $$;
 
--- GRANT EXECUTE ON FUNCTION atualizar_item_estoque(UUID, JSON) TO web_anon;
+GRANT EXECUTE ON FUNCTION atualizar_item_estoque(UUID, JSON) TO web_anon;
 
 -- =============================================================================
 -- SMOKE TESTS
@@ -114,7 +114,7 @@ SELECT atualizar_item_estoque(
 -- Atualizar especificações:
 SELECT atualizar_item_estoque(
     (SELECT id FROM items ORDER BY criado_em DESC LIMIT 1),
-    '{"especificacoes": "{\"tipo\": \"Motor\", \"polos\": \"Tripolar\", \"tensao_v\": 220, \"corrente_a\": 32}"}'::JSON
+    '{"especificacoes": {"tipo": "Motor", "polos": "Tripolar", "tensao_v": 220, "corrente_a": 32}}'::JSON
 );
 
 -- Soft delete:

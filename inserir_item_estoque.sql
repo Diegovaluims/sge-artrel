@@ -59,57 +59,14 @@ BEGIN
 
     -- =========================================================================
     -- 3. VALIDAÇÃO DO VÍNCULO grupo_funcional ↔ tipo_ativo
-    --    Garante que o ativo pertence ao grupo selecionado.
+    --    Garante que o ativo pertence ao grupo selecionado usando tabela de domínio.
     -- =========================================================================
-    CASE v_grupo_funcional
-        WHEN 'PROTECAO_CHAVEAMENTO' THEN
-            IF v_tipo_ativo NOT IN (
-                'DISJUNTOR','MINI_DISJUNTOR','RELE','FUSIVEL',
-                'CHAVE','PARA_RAIO','BARRA_ATERRAMENTO'
-            ) THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo PROTECAO_CHAVEAMENTO', v_tipo_ativo;
-            END IF;
-
-        WHEN 'CONDUTORES' THEN
-            IF v_tipo_ativo NOT IN ('CABO','BARRAMENTO') THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo CONDUTORES', v_tipo_ativo;
-            END IF;
-
-        WHEN 'PAINEL_AUTOMACAO' THEN
-            IF v_tipo_ativo NOT IN ('CAIXA','PAINEL','SOFTSTARTER','INVERSOR') THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo PAINEL_AUTOMACAO', v_tipo_ativo;
-            END IF;
-
-        WHEN 'INFRAESTRUTURA_FERRAGEM' THEN
-            IF v_tipo_ativo NOT IN ('PARAFUSO','PORCA','ARRUELA','TERMINAL') THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo INFRAESTRUTURA_FERRAGEM', v_tipo_ativo;
-            END IF;
-
-        WHEN 'TRANSFORMADORES' THEN
-            IF v_tipo_ativo NOT IN (
-                'TRANSFORMADOR_TENSAO','TRANSFORMADOR_CORRENTE','AUTOTRANSFORMADOR'
-            ) THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo TRANSFORMADORES', v_tipo_ativo;
-            END IF;
-
-        WHEN 'CONTATORES' THEN
-            IF v_tipo_ativo NOT IN ('CONTATOR') THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo CONTATORES', v_tipo_ativo;
-            END IF;
-
-        WHEN 'DISPOSITIVOS_PARTIDA' THEN
-            IF v_tipo_ativo NOT IN ('SOFTSTARTER','INVERSOR','CHAVE_COMPENSADORA') THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo DISPOSITIVOS_PARTIDA', v_tipo_ativo;
-            END IF;
-
-        WHEN 'ACESSORIOS' THEN
-            IF v_tipo_ativo NOT IN ('CONTATO_AUXILIAR') THEN
-                RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo ACESSORIOS', v_tipo_ativo;
-            END IF;
-
-        ELSE
-            RAISE EXCEPTION 'grupo_funcional inválido: %', v_grupo_funcional;
-    END CASE;
+    IF NOT EXISTS (
+        SELECT 1 FROM tipos_ativo 
+        WHERE tipo_ativo = v_tipo_ativo AND grupo_funcional = v_grupo_funcional::grupo_funcional_enum
+    ) THEN
+        RAISE EXCEPTION 'tipo_ativo "%" inválido para o grupo %', v_tipo_ativo, v_grupo_funcional;
+    END IF;
 
     -- =========================================================================
     -- 4. RESOLUÇÃO DO fabricante_id
@@ -176,10 +133,16 @@ BEGIN
         v_item_id,
         CASE
             WHEN p_dados->'especificacoes' IS NOT NULL
-            THEN (p_dados->>'especificacoes')::JSONB
+            THEN (p_dados->'especificacoes')::JSONB
             ELSE '{}'::JSONB
         END
     );
+
+    -- =========================================================================
+    -- 6.5. REGISTRO DE AUDITORIA
+    -- =========================================================================
+    INSERT INTO log_auditoria (item_id, operacao, payload_depois)
+    VALUES (v_item_id, 'INSERT', p_dados::JSONB);
 
     -- =========================================================================
     -- 7. RETORNO
@@ -199,7 +162,7 @@ EXCEPTION
 END;
 $$;
 
--- GRANT EXECUTE ON FUNCTION inserir_item_estoque(JSON) TO web_anon;
+GRANT EXECUTE ON FUNCTION inserir_item_estoque(JSON) TO web_anon;
 
 -- =============================================================================
 -- SMOKE TESTS
@@ -214,7 +177,7 @@ SELECT inserir_item_estoque('{
     "localizacao_prateleira": "DJ 01",
     "fabricante_apelido": "Siemens",
     "modelo_referencia":  "3VU13",
-    "especificacoes": "{\"tipo\": \"Motor\", \"polos\": \"Tripolar\", \"tensao_v\": 380, \"corrente_a\": 17.5, \"potencia_kw\": 5.5}"
+    "especificacoes": {"tipo": "Motor", "polos": "Tripolar", "tensao_v": 380, "corrente_a": 17.5, "potencia_kw": 5.5}
 }'::JSON);
 
 -- Cabo
@@ -224,7 +187,7 @@ SELECT inserir_item_estoque('{
     "quantidade":      200,
     "localizacao":     "GALPAO",
     "fabricante_apelido": "Pirastic",
-    "especificacoes": "{\"material\": \"Cobre\", \"bitola_mm2\": 16.0, \"tensao_v\": 750, \"isolamento\": \"PVC 450/750V\"}"
+    "especificacoes": {"material": "Cobre", "bitola_mm2": 16.0, "tensao_v": 750, "isolamento": "PVC 450/750V"}
 }'::JSON);
 
 -- Relé
@@ -235,7 +198,7 @@ SELECT inserir_item_estoque('{
     "localizacao":     "MEZANINO",
     "fabricante_apelido": "Schneider",
     "modelo_referencia": "RE7TL11BU",
-    "especificacoes": "{\"tipo\": \"Temporizador\", \"corrente_min_a\": 0.1, \"corrente_max_a\": 30, \"contatos_na\": 1, \"contatos_nf\": 1, \"faixa_tempo_s\": 30}"
+    "especificacoes": {"tipo": "Temporizador", "corrente_min_a": 0.1, "corrente_max_a": 30, "contatos_na": 1, "contatos_nf": 1, "faixa_tempo_s": 30}
 }'::JSON);
 
 -- Verificar:
