@@ -1,13 +1,12 @@
 ﻿// ExtensaoFields.jsx
 // Subcomponentes de campos técnicos por grupo funcional — v3 (Sprint 3.5).
 // Arquitetura:
-//   1. ATIVOS_POR_GRUPO  — mapa grupo -> ativos disponíveis no dropdown
-//   2. GRUPO_COR         — paleta de cores por grupo
-//   3. ESTADO_SPECS      — flat state de todos os campos de especificação
-//   4. CAMPOS_SPECS      — Set de nomes que vão exclusivamente para JSONB
-//   5. montarEspecificacoes(tipoAtivo, form) — serializa para JSONB
-//   6. CorrenteInput     — select de tipo + input(s) numérico(s) com range opcional
-//   7. Um componente Ext* por grupo, com dropdown de tipo_ativo + campos condicionais
+//   1. ATIVOS_POR_GRUPO e GRUPO_COR providos pelo TiposAtivoContext
+//   2. ESTADO_SPECS      — flat state de todos os campos de especificação
+//   3. CAMPOS_SPECS      — Set de nomes que vão exclusivamente para JSONB
+//   4. montarEspecificacoes(tipoAtivo, form) — serializa para JSONB
+//   5. CorrenteInput     — select de tipo + input(s) numérico(s) com range opcional
+//   6. Um componente Ext* por grupo, com dropdown de tipo_ativo + campos condicionais
 //
 // Convenção de prefixos de state:
 //   ce_  — campos elétricos comuns a todos os ativos
@@ -21,63 +20,7 @@
 //   ct_  — Contator
 //   ca_  — Contatos Auxiliares
 
-// ─── 1. Mapa de grupos → ativos ───────────────────────────────────────────────
-
-export const ATIVOS_POR_GRUPO = {
-  PROTECAO_CHAVEAMENTO: [
-    { value: 'DISJUNTOR',         label: 'Disjuntor' },
-    { value: 'MINI_DISJUNTOR',    label: 'Mini-Disjuntor' },
-    { value: 'RELE',              label: 'Relé' },
-    { value: 'FUSIVEL',           label: 'Fusível' },
-    { value: 'CHAVE',             label: 'Chave' },
-    { value: 'PARA_RAIO',         label: 'Pára-Raio' },
-    { value: 'BARRA_ATERRAMENTO', label: 'Barra de Aterramento' },
-  ],
-  CONTATORES: [
-    { value: 'CONTATOR', label: 'Contator' },
-  ],
-  CONDUTORES: [
-    { value: 'CABO',        label: 'Cabo' },
-    { value: 'BARRAMENTO',  label: 'Barramento' },
-    { value: 'BARRA_CHATA', label: 'Barra Chata' },
-  ],
-  DISPOSITIVOS_PARTIDA: [
-    { value: 'SOFTSTARTER',        label: 'Softstarter' },
-    { value: 'INVERSOR',           label: 'Inversor' },
-    { value: 'CHAVE_COMPENSADORA', label: 'Chave Compensadora' },
-  ],
-  PAINEL_AUTOMACAO: [
-    { value: 'CAIXA',  label: 'Caixa' },
-    { value: 'PAINEL', label: 'Painel' },
-  ],
-  ACESSORIOS: [
-    { value: 'CONTATOS_AUXILIARES', label: 'Contatos Auxiliares' },
-  ],
-  INFRAESTRUTURA_FERRAGEM: [
-    { value: 'PARAFUSO', label: 'Parafuso' },
-    { value: 'PORCA',    label: 'Porca' },
-    { value: 'ARRUELA',  label: 'Arruela' },
-    { value: 'TERMINAL', label: 'Terminal' },
-  ],
-  TRANSFORMADORES: [
-    { value: 'TRANSFORMADOR_TENSAO',   label: 'Transformador de Tensão' },
-    { value: 'TRANSFORMADOR_CORRENTE', label: 'Transformador de Corrente' },
-    { value: 'AUTOTRANSFORMADOR',      label: 'Autotransformador' },
-  ],
-};
-
-// ─── 2. Paleta de cores por grupo ──────────────────────────────────────────────
-
-export const GRUPO_COR = {
-  PROTECAO_CHAVEAMENTO:    { bg: 'rgba(249,115,22,.15)',  color: '#f97316', label: 'Proteção e Chaveamento' },
-  CONTATORES:              { bg: 'rgba(236,72,153,.15)',  color: '#ec4899', label: 'Contatores' },
-  CONDUTORES:              { bg: 'rgba(234,179,8,.15)',   color: '#ca8a04', label: 'Condutores' },
-  DISPOSITIVOS_PARTIDA:    { bg: 'rgba(16,185,129,.15)',  color: '#10b981', label: 'Dispositivos de Partida' },
-  PAINEL_AUTOMACAO:        { bg: 'rgba(139,92,246,.15)',  color: '#8b5cf6', label: 'Painéis e Automação' },
-  ACESSORIOS:              { bg: 'rgba(113,113,122,.15)', color: '#71717a', label: 'Acessórios' },
-  INFRAESTRUTURA_FERRAGEM: { bg: 'rgba(100,116,139,.15)', color: '#64748b', label: 'Infraestrutura e Ferragem' },
-  TRANSFORMADORES:         { bg: 'rgba(6,182,212,.15)',   color: '#06b6d4', label: 'Transformadores' },
-};
+import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
 
 // ─── 3. Estado flat de todos os campos de especificação ────────────────────────
 
@@ -167,7 +110,7 @@ export function montarEspecificacoes(tipoAtivo, form) {
       add(spec, 'corrente_a', n(form.chv_corrente_a));
       break;
 
-    case 'PARA_RAIO':
+    case 'PARA-RAIO':
       add(spec, 'material', s(form.pr_material));
       add(spec, 'tensao_v', n(form.pr_tensao_v));
       addCamposEletricos(spec);
@@ -269,6 +212,7 @@ export function CorrenteInput({
 // ─── Ext: Proteção e Chaveamento ──────────────────────────────────────────────
 
 export function ExtProtecaoChaveamento({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -279,7 +223,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.PROTECAO_CHAVEAMENTO.map(a => (
+            {ATIVOS_POR_GRUPO['PROTECAO_CHAVEAMENTO']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -501,8 +445,8 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
         </div>
       )}
 
-      {/* ── PARA_RAIO ── */}
-      {tipo === 'PARA_RAIO' && (
+      {/* ── PARA-RAIO ── */}
+      {tipo === 'PARA-RAIO' && (
         <div className="form-grid">
           <div className="form-field">
             <label htmlFor="pr_material">Material</label>
@@ -535,7 +479,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
         </div>
       )}
 
-      {tipo === 'BARRA_ATERRAMENTO' && (
+      {tipo === 'BARRA_DE_ATERRAMENTO' && (
         <p className="specs-placeholder">Campos a definir — especificações em texto livre nas Observações.</p>
       )}
     </>
@@ -544,6 +488,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
 // ─── Ext: Contatores ──────────────────────────────────────────────────────────
 
 export function ExtContatores({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -553,7 +498,7 @@ export function ExtContatores({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.CONTATORES.map(a => (
+            {ATIVOS_POR_GRUPO['CONTATORES']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -616,6 +561,7 @@ export function ExtContatores({ form, onChange }) {
 // ─── Ext: Condutores ──────────────────────────────────────────────────────────
 
 export function ExtCondutores({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -625,7 +571,7 @@ export function ExtCondutores({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.CONDUTORES.map(a => (
+            {ATIVOS_POR_GRUPO['CONDUTORES']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -681,6 +627,7 @@ export function ExtCondutores({ form, onChange }) {
 // ─── Ext: Dispositivos de Partida ─────────────────────────────────────────────
 
 export function ExtDispositivosPartida({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -690,7 +637,7 @@ export function ExtDispositivosPartida({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.DISPOSITIVOS_PARTIDA.map(a => (
+            {ATIVOS_POR_GRUPO['DISPOSITIVOS_PARTIDA']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -706,6 +653,7 @@ export function ExtDispositivosPartida({ form, onChange }) {
 // ─── Ext: Painéis e Automação ─────────────────────────────────────────────────
 
 export function ExtPainelAutomacao({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -715,7 +663,7 @@ export function ExtPainelAutomacao({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.PAINEL_AUTOMACAO.map(a => (
+            {ATIVOS_POR_GRUPO['PAINEL_AUTOMACAO']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -731,6 +679,7 @@ export function ExtPainelAutomacao({ form, onChange }) {
 // ─── Ext: Acessórios ──────────────────────────────────────────────────────────
 
 export function ExtAcessorios({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -740,7 +689,7 @@ export function ExtAcessorios({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.ACESSORIOS.map(a => (
+            {ATIVOS_POR_GRUPO['ACESSORIOS']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -786,6 +735,7 @@ export function ExtAcessorios({ form, onChange }) {
 // ─── Ext: Infraestrutura e Ferragem ───────────────────────────────────────────
 
 export function ExtInfraestruturaFerragem({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -795,7 +745,7 @@ export function ExtInfraestruturaFerragem({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.INFRAESTRUTURA_FERRAGEM.map(a => (
+            {ATIVOS_POR_GRUPO['INFRAESTRUTURA_FERRAGEM']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>
@@ -811,6 +761,7 @@ export function ExtInfraestruturaFerragem({ form, onChange }) {
 // ─── Ext: Transformadores ─────────────────────────────────────────────────────
 
 export function ExtTransformadores({ form, onChange }) {
+  const { ATIVOS_POR_GRUPO } = useTiposAtivo();
   const tipo = form.tipo_ativo;
 
   return (
@@ -820,7 +771,7 @@ export function ExtTransformadores({ form, onChange }) {
           <label htmlFor="tipo_ativo" className="required-label">Tipo</label>
           <select id="tipo_ativo" name="tipo_ativo" value={tipo} onChange={onChange} required>
             <option value="">— Selecione o tipo —</option>
-            {ATIVOS_POR_GRUPO.TRANSFORMADORES.map(a => (
+            {ATIVOS_POR_GRUPO['TRANSFORMADORES']?.map(a => (
               <option key={a.value} value={a.value}>{a.label}</option>
             ))}
           </select>

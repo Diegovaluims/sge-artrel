@@ -1,0 +1,188 @@
+/* GroupSelect.css */
+/* Dropdown customizado de grupo funcional com tooltip de ativos. */
+
+/* ─── Wrapper ────────────────────────────────────────────────────────────── */
+.group-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ─── Trigger (substitui o <select> visualmente) ─────────────────────────── */
+.group-select-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.group-select-trigger:hover {
+  border-color: var(--color-text-muted);
+}
+
+.group-select-wrapper.open .group-select-trigger {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-dim);
+}
+
+.group-select-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.2em;
+}
+
+.group-select-placeholder {
+  color: var(--color-text-muted);
+}
+
+.group-select-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.group-select-arrow {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.group-select-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* ─── Dropdown ───────────────────────────────────────────────────────────── */
+.group-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-focus);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: visible;
+  animation: gs-open 120ms ease;
+}
+
+@keyframes gs-open {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Opções ─────────────────────────────────────────────────────────────── */
+.group-select-option {
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: background-color var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.group-select-option:first-child {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.group-select-option:last-child {
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.group-select-option:not(:last-child) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.group-select-option:hover {
+  background-color: var(--color-surface);
+}
+
+.group-select-option.selected {
+  background-color: var(--color-accent-dim);
+}
+
+.group-select-option.placeholder-opt {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.group-option-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ─── Tooltip ────────────────────────────────────────────────────────────── */
+.group-tooltip {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  min-width: 200px;
+  max-width: 260px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 0.65rem 0.85rem;
+  z-index: 300;
+  pointer-events: none;
+  animation: tooltip-in 120ms ease;
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.group-tooltip-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.group-tooltip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.group-tooltip-item {
+  font-size: 0.8rem;
+  color: var(--color-text);
+  padding: 0.1rem 0;
+  padding-left: 0.75rem;
+  position: relative;
+  text-transform: capitalize;
+}
+
+.group-tooltip-item::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--color-text-muted);
+}

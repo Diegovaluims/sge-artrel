@@ -5,37 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { POSTGREST_URL } from '../../config.js';
-import { GRUPO_COR } from '../ItemForm/ExtensaoFields.jsx';
 import EditModal from '../EditModal/EditModal.jsx';
+import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
 import './EstoqueTable.css';
-
-// Rótulos legíveis para cada tipo_ativo
-const LABEL_ATIVO = {
-  DISJUNTOR:               'Disjuntor',
-  MINI_DISJUNTOR:          'Mini-Disjuntor',
-  RELE:                    'Relé',
-  FUSIVEL:                 'Fusível',
-  CHAVE:                   'Chave',
-  PARA_RAIO:               'Pára-Raio',
-  BARRA_ATERRAMENTO:       'Barra de Aterramento',
-  CONTATOR:                'Contator',
-  CABO:                    'Cabo',
-  BARRAMENTO:              'Barramento',
-  BARRA_CHATA:             'Barra Chata',
-  SOFTSTARTER:             'Softstarter',
-  INVERSOR:                'Inversor',
-  CHAVE_COMPENSADORA:      'Chave Compensadora',
-  CAIXA:                   'Caixa',
-  PAINEL:                  'Painel',
-  CONTATOS_AUXILIARES:     'Contatos Auxiliares',
-  PARAFUSO:                'Parafuso',
-  PORCA:                   'Porca',
-  ARRUELA:                 'Arruela',
-  TERMINAL:                'Terminal',
-  TRANSFORMADOR_TENSAO:    'Transf. de Tensão',
-  TRANSFORMADOR_CORRENTE:  'Transf. de Corrente',
-  AUTOTRANSFORMADOR:       'Autotransformador',
-};
 
 // Extrai resumo de especificações técnicas do JSONB para exibição na tabela
 function getInfoTecnica(row) {
@@ -43,8 +15,8 @@ function getInfoTecnica(row) {
   const partes = [];
 
   // Campos comuns mais relevantes para exibição
-  if (spec.tipo)         partes.push(spec.tipo);
-  if (spec.polos)        partes.push(spec.polos);
+  if (spec.tipo)         partes.push(`${spec.tipo}`);
+  if (spec.polos)        partes.push(`${spec.polos} Polo(s)`);
   if (spec.curva)        partes.push(`Curva ${spec.curva}`);
   if (spec.corrente_a)   partes.push(`${spec.corrente_a} A`);
   if (spec.corrente_min_a && spec.corrente_max_a)
@@ -55,38 +27,50 @@ function getInfoTecnica(row) {
   if (spec.bitola_mm2)   partes.push(`${spec.bitola_mm2} mm²`);
   if (spec.isolamento)   partes.push(spec.isolamento);
   if (spec.tipo_corrente)    partes.push(spec.tipo_corrente);
-  if (spec.corrente_cc)      partes.push(`Icc: ${spec.corrente_cc} kA`);
-  if (spec.tensao_isolamento) partes.push(`Ui: ${spec.tensao_isolamento} V`);
+  if (spec.corrente_cc)      partes.push(`${spec.corrente_cc} kA Icc`);
+  if (spec.tensao_isolamento) partes.push(`${spec.tensao_isolamento} Vi`);
 
 
   return partes.length > 0 ? partes.join(' · ') : '—';
 }
 
-export default function EstoqueTable() {
+export default function EstoqueTable({ refreshTrigger }) {
+  const { LABEL_ATIVO, GRUPO_COR, loading: loadingTipos } = useTiposAtivo();
   const [dados, setDados] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
-  const [fetchTick, setFetchTick] = useState(0);
+  
+  // Paginação
+  const [pagina, setPagina] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const LIMIT = 50;
+
   const [modoEdicao, setModoEdicao] = useState(false);
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [fabricantes, setFabricantes] = useState([]);
 
-  const recarregar = () => { setLoading(true); setErro(null); setFetchTick(t => t + 1); };
+  const recarregar = () => { setLoading(true); setErro(null); setPagina(1); };
 
   useEffect(() => {
     let ativo = true;
-    fetch(`${POSTGREST_URL}/v_estoque_completo?order=criado_em.desc`, {
-      headers: { Accept: 'application/json' },
+    setLoading(true);
+    fetch(`${POSTGREST_URL}/v_estoque_completo?order=criado_em.desc&limit=${LIMIT}&offset=${(pagina - 1) * LIMIT}`, {
+      headers: { Accept: 'application/json', Prefer: 'count=exact' },
     })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+        const contentRange = res.headers.get('Content-Range');
+        if (contentRange) {
+          const total = parseInt(contentRange.split('/')[1], 10);
+          setTotalItems(total);
+        }
         return res.json();
       })
       .then(json => { if (ativo) { setDados(json); setLoading(false); } })
       .catch(e => { if (ativo) { setErro(e.message); setLoading(false); } });
     return () => { ativo = false; };
-  }, [fetchTick]);
+  }, [pagina, refreshTrigger]);
 
   useEffect(() => {
     fetch(`${POSTGREST_URL}/fabricantes?order=nome.asc&select=id,nome,apelido`, {
@@ -140,8 +124,12 @@ export default function EstoqueTable() {
           />
         </div>
         <span className="estoque-count">
-          {loading ? '…' : `${filtrado.length} / ${dados.filter(r => r.status !== 'DESCARTADO').length} itens`}
+          {loading || loadingTipos ? '…' : `Página ${pagina} — ${totalItems > 0 ? totalItems + ' itens totais' : filtrado.length + ' / ' + dados.filter(r => r.status !== 'DESCARTADO').length + ' itens na página'}`}
         </span>
+        <div className="estoque-pagination">
+          <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={loading || pagina === 1}>Anterior</button>
+          <button onClick={() => setPagina(p => p + 1)} disabled={loading || dados.length < LIMIT}>Próxima</button>
+        </div>
         <button
           className={`estoque-edit-btn${modoEdicao ? ' active' : ''}`}
           onClick={() => setModoEdicao(m => !m)}
@@ -160,14 +148,14 @@ export default function EstoqueTable() {
       </div>
 
       {/* Estados */}
-      {loading && <div className="estoque-state"><span>⏳</span> Carregando estoque…</div>}
-      {!loading && erro && <div className="estoque-state error"><span>⚠️</span> Erro ao carregar: {erro}</div>}
-      {!loading && !erro && filtrado.length === 0 && (
+      {(loading || loadingTipos) && <div className="estoque-state"><span>⏳</span> Carregando estoque…</div>}
+      {(!loading && !loadingTipos) && erro && <div className="estoque-state error"><span>⚠️</span> Erro ao carregar: {erro}</div>}
+      {(!loading && !loadingTipos) && !erro && filtrado.length === 0 && (
         <div className="estoque-state"><span>📦</span> Nenhum item encontrado.</div>
       )}
 
       {/* Tabela */}
-      {!loading && !erro && filtrado.length > 0 && (
+      {(!loading && !loadingTipos) && !erro && filtrado.length > 0 && (
         <div className="table-scroll">
           <table className="estoque-table" aria-label="Tabela de estoque">
             <thead>

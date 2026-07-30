@@ -6,7 +6,6 @@
 import { useState, useEffect } from 'react';
 import { POSTGREST_URL } from '../../config.js';
 import {
-  GRUPO_COR,
   CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
   ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
   ExtDispositivosPartida, ExtPainelAutomacao, ExtAcessorios,
@@ -14,35 +13,8 @@ import {
 } from '../ItemForm/ExtensaoFields.jsx';
 import NumberInput from '../NumberInput/NumberInput.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
 import './EditModal.css';
-
-// Rótulos de ativo (mesma referência da EstoqueTable, definida localmente para isolamento)
-const LABEL_ATIVO = {
-  DISJUNTOR: 'Disjuntor',
-  MINI_DISJUNTOR: 'Mini-Disjuntor',
-  RELE: 'Relé',
-  FUSIVEL: 'Fusível',
-  CHAVE: 'Chave',
-  PARA_RAIO: 'Pára-Raio',
-  BARRA_ATERRAMENTO: 'Barra de Aterramento',
-  CONTATOR: 'Contator',
-  CABO: 'Cabo',
-  BARRAMENTO: 'Barramento',
-  BARRA_CHATA: 'Barra Chata',
-  SOFTSTARTER: 'Softstarter',
-  INVERSOR: 'Inversor',
-  CHAVE_COMPENSADORA: 'Chave Compensadora',
-  CAIXA: 'Caixa',
-  PAINEL: 'Painel',
-  CONTATOS_AUXILIARES: 'Contatos Auxiliares',
-  PARAFUSO: 'Parafuso',
-  PORCA: 'Porca',
-  ARRUELA: 'Arruela',
-  TERMINAL: 'Terminal',
-  TRANSFORMADOR_TENSAO: 'Transf. de Tensão',
-  TRANSFORMADOR_CORRENTE: 'Transf. de Corrente',
-  AUTOTRANSFORMADOR: 'Autotransformador',
-};
 
 // Achata especificacoes JSONB para o estado flat de specs
 function hidratarSpecs(tipoAtivo, jsonb) {
@@ -98,7 +70,7 @@ function hidratarSpecs(tipoAtivo, jsonb) {
         chv_tensao_v:  g('tensao_v'),
         chv_corrente_a: g('corrente_a'),
       };
-    case 'PARA_RAIO':
+    case 'PARA-RAIO':
       return {
         ...specsEletricas,
         pr_material:   g('material'),
@@ -136,6 +108,7 @@ function hidratarSpecs(tipoAtivo, jsonb) {
 
 export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
   const { addToast } = useToast();
+  const { LABEL_ATIVO, GRUPO_COR, loading: loadingTipos } = useTiposAtivo();
   const [form, setForm] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -187,10 +160,8 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
     if (payload.quantidade !== undefined) payload.quantidade = Number(payload.quantidade);
 
     const especificacoes = montarEspecificacoes(form.tipo_ativo, form);
-    // Envia especificacoes mesmo que nulo para permitir limpeza pelo backend
-    payload.especificacoes = especificacoes
-      ? JSON.stringify(especificacoes)
-      : '{}';
+    // Envia especificacoes mesmo que nulo para permitir limpeza pelo backend (como objeto)
+    payload.especificacoes = especificacoes ? especificacoes : {};
 
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/atualizar_item_estoque`, {

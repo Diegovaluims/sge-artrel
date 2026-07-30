@@ -1,10 +1,11 @@
 // App.jsx — Shell principal da aplicação ARTREL ESTOQUE
 // Gerencia navegação via tabs (sem react-router) e integra os componentes.
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import EstoqueTable from './components/EstoqueTable/EstoqueTable.jsx';
 import ItemForm from './components/ItemForm/ItemForm.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
+import { TiposAtivoProvider } from './context/TiposAtivoContext.jsx';
 import ToastContainer from './components/ToastContainer/ToastContainer.jsx';
 import './App.css';
 
@@ -15,19 +16,20 @@ const TABS = [
 
 export default function App() {
   const [tabAtiva, setTabAtiva] = useState('estoque');
-  // Contador usado para forçar refresh da tabela ao salvar novo item
-  const [refreshKey, setRefreshKey] = useState(0);
+  // Trigger usado para notificar a tabela ao salvar novo item
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const handleItemSalvo = () => {
+  const handleItemSalvo = useCallback(() => {
     // Muda para a tab de estoque e força recarregamento
     setTabAtiva('estoque');
-    setRefreshKey(k => k + 1);
-  };
+    setRefreshTrigger(k => k + 1);
+  }, []);
 
   return (
     <ToastProvider>
-      <div className="app-shell">
-        <ToastContainer />
+      <TiposAtivoProvider>
+        <div className="app-shell">
+          <ToastContainer />
         {/* Header */}
         <header className="app-header">
           <div className="app-header-brand">
@@ -55,13 +57,14 @@ export default function App() {
         {/* Conteúdo principal */}
         <main className="app-main">
           {tabAtiva === 'estoque' && (
-            <EstoqueTable key={refreshKey} />
+            <EstoqueTable refreshTrigger={refreshTrigger} />
           )}
           {tabAtiva === 'cadastrar' && (
             <ItemForm onItemSalvo={handleItemSalvo} />
           )}
         </main>
       </div>
+      </TiposAtivoProvider>
     </ToastProvider>
   );
 }

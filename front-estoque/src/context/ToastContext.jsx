@@ -3,24 +3,28 @@
 // Uso: const { addToast } = useToast();
 //      addToast('success', 'Mensagem'); | addToast('error', 'Erro.');
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState, useRef } from 'react';
 
 const ToastContext = createContext(null);
 
-let _nextId = 1;
-
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const timers = useRef(new Map());
 
   const addToast = useCallback((tipo, msg) => {
-    const id = _nextId++;
+    const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, tipo, msg }]);
-    setTimeout(() => {
+    
+    const timer = setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3500);
+      timers.current.delete(id);
+    }, 5000);
+    timers.current.set(id, timer);
   }, []);
 
   const removeToast = useCallback(id => {
+    clearTimeout(timers.current.get(id));
+    timers.current.delete(id);
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 

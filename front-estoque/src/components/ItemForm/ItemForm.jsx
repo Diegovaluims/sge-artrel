@@ -5,13 +5,15 @@
 import { useState, useEffect } from 'react';
 import { POSTGREST_URL } from '../../config.js';
 import {
-  ATIVOS_POR_GRUPO, GRUPO_COR, CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
+  CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
   ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
   ExtDispositivosPartida, ExtPainelAutomacao, ExtAcessorios,
   ExtInfraestruturaFerragem, ExtTransformadores,
 } from './ExtensaoFields.jsx';
+import GroupSelect from '../GroupSelect/GroupSelect.jsx';
 import NumberInput from '../NumberInput/NumberInput.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
+import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
 import './ItemForm.css';
 
 const GRUPOS = [
@@ -42,6 +44,7 @@ const ESTADO_INICIAL = {
 
 export default function ItemForm({ onItemSalvo }) {
   const { addToast } = useToast();
+  const { ATIVOS_POR_GRUPO, GRUPO_COR, loading: loadingTipos } = useTiposAtivo();
   const [form, setForm] = useState(ESTADO_INICIAL);
   const [fabricantes, setFabricantes] = useState([]);
   const [enviando, setEnviando] = useState(false);
@@ -86,9 +89,9 @@ export default function ItemForm({ onItemSalvo }) {
     if (payload.fabricante_id) payload.fabricante_id = Number(payload.fabricante_id);
     if (payload.quantidade !== undefined) payload.quantidade = Number(payload.quantidade);
 
-    // Monta especificacoes JSONB
+    // Monta especificacoes como objeto (NÃO STRINGIFICAR!)
     const especificacoes = montarEspecificacoes(form.tipo_ativo, form);
-    if (especificacoes) payload.especificacoes = JSON.stringify(especificacoes);
+    if (especificacoes) payload.especificacoes = especificacoes;
 
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/inserir_item_estoque`, {
@@ -130,6 +133,7 @@ export default function ItemForm({ onItemSalvo }) {
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
+        {loadingTipos && <div className="loading-overlay">Carregando categorias...</div>}
 
         {/* ── Classificação ── */}
         <div className="form-section">
@@ -137,17 +141,16 @@ export default function ItemForm({ onItemSalvo }) {
           <div className="form-grid">
             <div className="form-field">
               <label htmlFor="grupo_funcional" className="required-label">Categoria</label>
-              <select id="grupo_funcional" name="grupo_funcional" value={grupo} onChange={handleChange} required>
-                <option value="">— Selecione a categoria —</option>
-                {GRUPOS.map(g => (
-                  <option key={g.value} value={g.value}>{g.label}</option>
-                ))}
-              </select>
-              {grupoCor && (
-                <span className="cat-info-pill" style={{ background: grupoCor.bg, color: grupoCor.color }}>
-                  {grupoCor.label}
-                </span>
-              )}
+              <GroupSelect
+                id="grupo_funcional"
+                name="grupo_funcional"
+                value={grupo}
+                onChange={handleChange}
+                groups={GRUPOS}
+                groupAssets={ATIVOS_POR_GRUPO}
+                groupColors={GRUPO_COR}
+                required
+              />
             </div>
             <div className="form-field">
               <label htmlFor="fabricante_id">Fabricante</label>
