@@ -10,8 +10,8 @@ export const GRUPO_COR = {
   CONDUTORES:              { bg: 'rgba(234,179,8,.15)',   color: '#ca8a04', label: 'Condutores' },
   DISPOSITIVOS_PARTIDA:    { bg: 'rgba(16,185,129,.15)',  color: '#10b981', label: 'Dispositivos de Partida' },
   PAINEL_AUTOMACAO:        { bg: 'rgba(139,92,246,.15)',  color: '#8b5cf6', label: 'Painéis e Automação' },
-  ACESSORIOS:              { bg: 'rgba(113,113,122,.15)', color: '#71717a', label: 'Acessórios' },
-  INFRAESTRUTURA_FERRAGEM: { bg: 'rgba(100,116,139,.15)', color: '#64748b', label: 'Infraestrutura e Ferragem' },
+  ACESSORIOS:              { bg: 'rgba(118, 60, 139, 0.15)', color: '#d86beeff', label: 'Acessórios' },
+  INFRAESTRUTURA_FERRAGEM: { bg: 'rgba(73, 73, 73, 0.31)', color: 'rgba(199, 199, 199, 1)', label: 'Infraestrutura e Ferragem' },
   TRANSFORMADORES:         { bg: 'rgba(6,182,212,.15)',   color: '#06b6d4', label: 'Transformadores' },
 };
 
