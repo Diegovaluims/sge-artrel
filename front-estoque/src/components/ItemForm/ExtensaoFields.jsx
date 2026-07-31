@@ -21,6 +21,7 @@
 //   ca_  — Contatos Auxiliares
 
 import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
+import './ExtensaoFields.css';
 
 // ─── 3. Estado flat de todos os campos de especificação ────────────────────────
 
@@ -190,7 +191,7 @@ export function CorrenteInput({
             type="number"
             step="0.01"
             min="0"
-            placeholder="Mín. (A)"
+            placeholder="Mín."
             value={minValue}
             onChange={onChange}
           />
@@ -201,7 +202,7 @@ export function CorrenteInput({
           type="number"
           step="0.01"
           min="0"
-          placeholder={temRange ? 'Máx. (A)' : 'Valor (A)'}
+          placeholder={temRange ? 'Máx.' : 'Valor (A)'}
           value={value}
           onChange={onChange}
         />
@@ -266,7 +267,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 380" value={form.dj_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (V)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -274,7 +275,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
             value={form.dj_corrente_a} tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -309,7 +310,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 230" value={form.md_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 440" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -317,7 +318,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
             value={form.md_corrente_a} tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 6" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -360,7 +361,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 220" value={form.rl_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -370,7 +371,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
             tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -395,7 +396,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 500" value={form.fus_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -403,7 +404,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
             value={form.fus_corrente_a} tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -430,7 +431,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 380" value={form.chv_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -438,7 +439,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
             value={form.chv_corrente_a} tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -462,7 +463,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 12700" value={form.pr_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -472,7 +473,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
               placeholder="ex: 10" value={form.pr_corrente_ka} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -538,7 +539,7 @@ export function ExtContatores({ form, onChange }) {
               placeholder="ex: 380" value={form.ct_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -548,7 +549,7 @@ export function ExtContatores({ form, onChange }) {
             tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -605,12 +606,12 @@ export function ExtCondutores({ form, onChange }) {
           </div>
           {/* Sem tensao nominal — somente Vi/Ui e semanticamente correto para cabos */}
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 1000" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
@@ -711,7 +712,7 @@ export function ExtAcessorios({ form, onChange }) {
           </div>
           {/* Sem tensao nominal — somente Vi/Ui */}
           <div className="form-field">
-            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento — Vi/Ui (V)</label>
+            <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
               placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
@@ -722,7 +723,7 @@ export function ExtAcessorios({ form, onChange }) {
             tipoValue={form.ce_tipo_corrente}
             onChange={onChange} label="Corrente (A)" />
           <div className="form-field">
-            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito — Icc (kA)</label>
+            <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
               placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>

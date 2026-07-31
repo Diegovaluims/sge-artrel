@@ -29,15 +29,19 @@
 }
 
 .app-header-brand .brand-icon {
-  width: 32px;
-  height: 32px;
-  background: var(--color-accent);
-  border-radius: var(--radius-md);
+  width: 69px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
-  box-shadow: 0 0 12px rgba(59,130,246,0.4);
+  overflow: hidden;
+}
+
+.app-header-brand .brand-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
 }
 
 .app-header-brand h1 {

@@ -7,6 +7,7 @@ import ItemForm from './components/ItemForm/ItemForm.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { TiposAtivoProvider } from './context/TiposAtivoContext.jsx';
 import ToastContainer from './components/ToastContainer/ToastContainer.jsx';
+import logoArtrel from './assets/logo_artrel_novo.png';
 import './App.css';
 
 const TABS = [
@@ -33,8 +34,10 @@ export default function App() {
         {/* Header */}
         <header className="app-header">
           <div className="app-header-brand">
-            <div className="brand-icon">⚡</div>
-            <h1><span>ARTREL</span> Estoque</h1>
+            <div className="brand-icon">
+              <img src={logoArtrel} alt="Logo ARTREL" />
+            </div>
+            <h1>Sistema de Gerenciamento</h1>
           </div>
           <span className="app-header-badge">Protótipo v0.1</span>
         </header>

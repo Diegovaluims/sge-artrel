@@ -16,7 +16,7 @@ function getInfoTecnica(row) {
 
   // Campos comuns mais relevantes para exibição
   if (spec.tipo)         partes.push(`${spec.tipo}`);
-  if (spec.polos)        partes.push(`${spec.polos} Polo(s)`);
+  if (spec.polos)        partes.push(`${spec.polos}`);
   if (spec.curva)        partes.push(`Curva ${spec.curva}`);
   if (spec.corrente_a)   partes.push(`${spec.corrente_a} A`);
   if (spec.corrente_min_a && spec.corrente_max_a)
