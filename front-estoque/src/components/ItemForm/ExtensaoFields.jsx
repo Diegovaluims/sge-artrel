@@ -47,6 +47,8 @@ export const ESTADO_SPECS = {
   ct_tipo: '', ct_polos: '', ct_tensao_v: '', ct_corrente_a: '', ct_contatos_na: '', ct_contatos_nf: '',
   // Contatos Auxiliares
   ca_contatos_na: '', ca_contatos_nf: '', ca_corrente_a: '',
+  // Terminal
+  te_tipo: '', te_uso: '', te_tensao: '', te_bitola: '',
 };
 // ─── 4. Set de campos que vão exclusivamente para JSONB ───────────────────────
 
@@ -509,7 +511,7 @@ export function ExtContatores({ form, onChange }) {
       {tipo === 'CONTATOR' && (
         <div className="form-grid">
           <div className="form-field">
-            <label htmlFor="ct_tipo">Classe (IEC)</label>
+            <label htmlFor="ct_tipo">Classe</label>
             <select id="ct_tipo" name="ct_tipo" value={form.ct_tipo} onChange={onChange}>
               <option value="">—</option>
               <option>AC-1</option>
@@ -604,7 +606,6 @@ export function ExtCondutores({ form, onChange }) {
               <option>Borracha</option>
             </select>
           </div>
-          {/* Sem tensao nominal — somente Vi/Ui e semanticamente correto para cabos */}
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
@@ -733,7 +734,7 @@ export function ExtAcessorios({ form, onChange }) {
   );
 }
 
-// ─── Ext: Infraestrutura e Ferragem ───────────────────────────────────────────
+// ─── Ext: Infraestrutura, Ferragem e Terminais───────────────────────────────────────────
 
 export function ExtInfraestruturaFerragem({ form, onChange }) {
   const { ATIVOS_POR_GRUPO } = useTiposAtivo();
@@ -752,8 +753,36 @@ export function ExtInfraestruturaFerragem({ form, onChange }) {
           </select>
         </div>
       </div>
-      {tipo && (
-        <p className="specs-placeholder">Campos técnicos a definir — use Observações para detalhes.</p>
+      {tipo === 'TERMINAL' && (
+        <div className="form-grid">
+          <div className="form-field">
+            <label htmlFor="te_tipo">Tipo de Terminal</label>
+            <select id="te_tipo" name="te_tipo" value={form.te_tipo} onChange={onChange}>
+              <option value="">—</option>
+              <option>Ilhós</option>
+              <option>Olhal</option>
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor="te_uso">Uso</label>
+            <select id="te_uso" name="te_uso" value={form.te_uso} onChange={onChange}>
+              <option value="">—</option>
+              <option>Interno</option>
+              <option>Externo</option>
+              <option>Interno/Externo</option>
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor="te_tensao">Tensão (kV)</label>
+            <input id="te_tensao" name="te_tensao" type="number" step="0.1" min="0"
+              placeholder="ex: 15" value={form.te_tensao} onChange={onChange} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="te_bitola">Bitola (mm²)</label>
+            <input id="te_bitola" name="te_bitola" type="number" step="0.1" min="0"
+              placeholder="ex: 25" value={form.te_bitola} onChange={onChange} />
+          </div>
+        </div>
       )}
     </>
   );
