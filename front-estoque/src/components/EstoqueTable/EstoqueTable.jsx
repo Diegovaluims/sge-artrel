@@ -93,15 +93,33 @@ export default function EstoqueTable({ refreshTrigger }) {
       .catch(() => setFabricantes([]));
   }, []);
 
+  /*
+  COLUNAS PESQUISADAS PELA BARRA DE PESQUISA
+  */
+
   const filtrado = dados
     .filter(row => row.status !== 'DESCARTADO')
     .filter(row => {
       if (!filtro.trim()) return true;
+
+      const specsTexto = row.especificacoes
+        ? Object.values(row.especificacoes).filter(Boolean).join(' ')
+        : '';
       const haystack = [
-        row.descricao, row.modelo_referencia,
-        row.tipo_ativo, row.grupo_funcional, row.fabricante,
+        row.condicao,
+        row.descricao,
+        row.fabricante,
+        row.grupo_funcional,
+        row.localizacao,
+        row.localizacao_prateleira,
+        row.modelo_referencia,
+        row.status,
+        row.tipo_ativo,
+        specsTexto,
       ].filter(Boolean).join(' ').toLowerCase();
-      return haystack.includes(filtro.toLowerCase());
+
+      const termos = filtro.toLowerCase().trim().split(/\s+/);
+      return termos.every(termo => haystack.includes(termo));
     });
 
   const handleSelecionarItem = row => setItemSelecionado(row);
