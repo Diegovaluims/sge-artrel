@@ -2,7 +2,7 @@
 // Formulário dinâmico de cadastro de itens de estoque — v2.
 // Fluxo: grupo_funcional (5 grandes grupos) → tipo_ativo → campos de spec (JSONB).
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { POSTGREST_URL } from '../../config.js';
 import {
   CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
@@ -42,12 +42,19 @@ const ESTADO_INICIAL = {
   ...ESTADO_SPECS,
 };
 
-export default function ItemForm({ onItemSalvo }) {
+export default function ItemForm({ onItemSalvo, focarCategoria }) {
   const { addToast } = useToast();
   const { ATIVOS_POR_GRUPO, GRUPO_COR, loading: loadingTipos } = useTiposAtivo();
   const [form, setForm] = useState(ESTADO_INICIAL);
   const [fabricantes, setFabricantes] = useState([]);
   const [enviando, setEnviando] = useState(false);
+  const categoriaRef = useRef(null);
+
+  useEffect(() => {
+    if (focarCategoria) {
+      categoriaRef.current?.focus();
+    }
+  }, [focarCategoria]);
 
   useEffect(() => {
     fetch(`${POSTGREST_URL}/fabricantes?order=nome.asc&select=id,nome,apelido`, {
@@ -142,6 +149,7 @@ export default function ItemForm({ onItemSalvo }) {
             <div className="form-field">
               <label htmlFor="grupo_funcional" className="required-label">Categoria</label>
               <GroupSelect
+                ref={categoriaRef}
                 id="grupo_funcional"
                 name="grupo_funcional"
                 value={grupo}

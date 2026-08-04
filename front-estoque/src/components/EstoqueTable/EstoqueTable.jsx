@@ -40,7 +40,7 @@ function getInfoTecnica(row) {
   return partes.length > 0 ? partes.join(' · ') : '—';
 }
 
-export default function EstoqueTable({ refreshTrigger }) {
+export default function EstoqueTable({ refreshTrigger, onNovoItem }) {
   const { LABEL_ATIVO, GRUPO_COR, loading: loadingTipos } = useTiposAtivo();
   const [dados, setDados] = useState([]);
   const [filtro, setFiltro] = useState('');
@@ -174,6 +174,13 @@ export default function EstoqueTable({ refreshTrigger }) {
           disabled={loading}
         >
           ↺ Atualizar
+        </button>
+        <button
+          className="estoque-add-btn"
+          onClick={onNovoItem}
+          title="Cadastrar novo item"
+        >
+          + Cadastrar Item
         </button>
       </div>
 

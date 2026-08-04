@@ -297,13 +297,6 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
                   </div>
                 </div>
                 <div className="form-field">
-                  <label>Tipo de Ativo</label>
-                  <div className="modal-field-readonly">
-                    <span>{labelAtivo}</span>
-                    <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', opacity: 0.5 }}>(não editável)</span>
-                  </div>
-                </div>
-                <div className="form-field">
                   <label htmlFor="m-fabricante_id">Fabricante</label>
                   <select id="m-fabricante_id" name="fabricante_id" value={form.fabricante_id} onChange={handleChange}>
                     <option value="">— Sem fabricante / Genérico —</option>

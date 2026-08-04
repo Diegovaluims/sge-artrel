@@ -2,6 +2,7 @@
 // Gerencia navegação via tabs (sem react-router) e integra os componentes.
 
 import { useState, useCallback } from 'react';
+import Footer from './components/Footer/Footer';
 import EstoqueTable from './components/EstoqueTable/EstoqueTable.jsx';
 import ItemForm from './components/ItemForm/ItemForm.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
@@ -11,20 +12,32 @@ import logoArtrel from './assets/logo_artrel_novo.png';
 import './App.css';
 
 const TABS = [
-  { id: 'estoque',   label: '📦 Estoque',        title: 'Consulta de Estoque' },
-  { id: 'cadastrar', label: '➕ Cadastrar Item',  title: 'Novo Item' },
+  { id: 'estoque',   label: 'Estoque',        title: 'Consulta de Estoque' },
+  { id: 'cadastrar', label: 'Cadastrar Item',  title: 'Novo Item' },
+  { id: 'historico', label: 'Histórico de Movimentação', title: 'Histórico de Movimentação' }
 ];
 
 export default function App() {
   const [tabAtiva, setTabAtiva] = useState('estoque');
   // Trigger usado para notificar a tabela ao salvar novo item
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [focarCategoria, setFocarCategoria] = useState(false);
 
   const handleItemSalvo = useCallback(() => {
     // Muda para a tab de estoque e força recarregamento
     setTabAtiva('estoque');
     setRefreshTrigger(k => k + 1);
   }, []);
+
+  const handleNovoItem = useCallback(() => {
+    setFocarCategoria(true);
+    setTabAtiva('cadastrar');
+  }, []);
+
+  const handleClickTabCadastrar = () => {
+    setFocarCategoria(false);
+    setTabAtiva('cadastrar');
+  };
 
   return (
     <ToastProvider>
@@ -39,7 +52,7 @@ export default function App() {
             </div>
             <h1>Sistema de Gerenciamento</h1>
           </div>
-          <span className="app-header-badge">Protótipo v0.1</span>
+          <span className="app-header-badge">Protótipo v0.2</span>
         </header>
 
         {/* Tabs */}
@@ -49,7 +62,10 @@ export default function App() {
               key={tab.id}
               id={`tab-${tab.id}`}
               className={`tab-btn${tabAtiva === tab.id ? ' active' : ''}`}
-              onClick={() => setTabAtiva(tab.id)}
+              onClick={() => {
+                if (tab.id === 'cadastrar') handleClickTabCadastrar();
+                setTabAtiva(tab.id);
+              }}
               aria-current={tabAtiva === tab.id ? 'page' : undefined}
             >
               {tab.label}
@@ -60,12 +76,13 @@ export default function App() {
         {/* Conteúdo principal */}
         <main className="app-main">
           {tabAtiva === 'estoque' && (
-            <EstoqueTable refreshTrigger={refreshTrigger} />
+            <EstoqueTable refreshTrigger={refreshTrigger} onNovoItem={handleNovoItem} />
           )}
           {tabAtiva === 'cadastrar' && (
-            <ItemForm onItemSalvo={handleItemSalvo} />
+            <ItemForm onItemSalvo={handleItemSalvo} focarCategoria={focarCategoria}/>
           )}
         </main>
+        <Footer />
       </div>
       </TiposAtivoProvider>
     </ToastProvider>

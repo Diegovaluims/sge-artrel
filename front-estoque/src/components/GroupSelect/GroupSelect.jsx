@@ -3,10 +3,10 @@
 // Substitui <select> nativo para habilitar tooltip com ativos por grupo via onMouseEnter.
 // Emite evento sintético { target: { name, value } } compatível com handleChange existente.
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import './GroupSelect.css';
 
-export default function GroupSelect({
+const GroupSelect = forwardRef(function GroupSelect({
   id,
   name,
   value,
@@ -16,11 +16,19 @@ export default function GroupSelect({
   groupColors = {},
   required = false,
   placeholder = '— Selecione a categoria —',
-}) {
+}, ref) {
   const [isOpen, setIsOpen]             = useState(false);
   const [hoveredGroup, setHoveredGroup] = useState(null);
   const [tooltipStyle, setTooltipStyle] = useState({ top: 0 });
   const wrapperRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      triggerRef.current?.focus();
+      setIsOpen(true);
+    }
+  }));
 
   // Fecha ao clicar fora
   useEffect(() => {
@@ -80,6 +88,7 @@ export default function GroupSelect({
     >
       {/* Trigger */}
       <button
+        ref={triggerRef}
         type="button"
         className="group-select-trigger"
         onClick={() => { setIsOpen(o => !o); setHoveredGroup(null); }}
@@ -157,4 +166,7 @@ export default function GroupSelect({
       )}
     </div>
   );
-}
+});
+
+export default GroupSelect;
+
