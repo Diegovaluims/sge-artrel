@@ -186,7 +186,7 @@ export default function EstoqueTable({ refreshTrigger }) {
 
       {/* Tabela */}
       {(!loading && !loadingTipos) && !erro && filtrado.length > 0 && (
-        <div className="table-scroll">
+        <div className={`table-scroll${modoEdicao ? ' modo-edicao' : ''}`}>
           <table className="estoque-table" aria-label="Tabela de estoque">
             <thead>
               <tr>
@@ -214,8 +214,8 @@ export default function EstoqueTable({ refreshTrigger }) {
                     key={row.id}
                     className={modoEdicao ? 'row-editavel' : ''}
                     onClick={() => { if (modoEdicao) handleSelecionarItem(row); }}
-                    tabIndex={modoEdicao ? 'button' : undefined}
-                    ondeKeyDown={e => {
+                    tabIndex={modoEdicao ? 0 : undefined}
+                    onKeyDown={e => {
                       if (modoEdicao && e.key === 'Enter' || e.key === ' ') {
                         handleSelecionarItem(row);
                       }

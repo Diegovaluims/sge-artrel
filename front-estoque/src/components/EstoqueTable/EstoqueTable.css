@@ -143,11 +143,14 @@
   white-space: nowrap;
 }
 
-.cat-tag.PROTECAO_CHAVEAMENTO    { background: rgba(249,115,22,.15);  color: #f97316; }
-.cat-tag.CONDUTORES              { background: rgba(234,179,8,.15);   color: #ca8a04; }
-.cat-tag.PAINEL_AUTOMACAO        { background: rgba(139,92,246,.15);  color: #8b5cf6; }
-.cat-tag.INFRAESTRUTURA_FERRAGEM { background: rgba(100,116,139,.15); color: #64748b; }
-.cat-tag.TRANSFORMADORES         { background: rgba(6,182,212,.15);   color: #06b6d4; }
+.cat-tag.PROTECAO_CHAVEAMENTO    { background: rgba(249,115,22,.15);  color: #f97316;  }
+.cat-tag.CONTATORES              { background: rgba(236,72,153,.15);  color: #ec4899;  }
+.cat-tag.CONDUTORES              { background: rgba(234,179,8,.15);   color: #ca8a04;  }
+.cat-tag.DISPOSITIVOS_PARTIDA    { background: rgba(16,185,129,.15);  color: #10b981;  }
+.cat-tag.PAINEL_AUTOMACAO        { background: rgba(139,92,246,.15);  color: #8b5cf6;  }
+.cat-tag.ACESSORIOS              { background: rgba(118,60,139,.15);  color: #d86beeff;}
+.cat-tag.INFRAESTRUTURA_FERRAGEM { background: rgba(100,116,139,.15); color: #64748b;  }
+.cat-tag.TRANSFORMADORES         { background: rgba(6,182,212,.15);   color: #06b6d4;  }
 
 /* --- Badge de status ------------------------------------------------------ */
 .status-badge {
@@ -192,10 +195,21 @@
   border-color: var(--color-accent);
 }
 
-.row-editavel {
-  cursor: pointer;
+.table-scroll.modo-edicao {
+  border-color: var(--color-accent);
 }
 
+.modo-edicao thead th {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.modo-edicao tbody tr {
+  border-color: var(--color-accent);
+}
+
+.modo-edicao tbody tr:hover,
 .row-editavel:hover {
-  background: var(--color-hover, rgba(99,102,241,.12));
+  background-color: rgba(250, 10, 10, .5);
+  cursor: pointer;
 }
