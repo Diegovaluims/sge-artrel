@@ -190,7 +190,6 @@ export default function EstoqueTable({ refreshTrigger }) {
           <table className="estoque-table" aria-label="Tabela de estoque">
             <thead>
               <tr>
-                {modoEdicao && <th style={{ width: 52 }}></th>}
                 <th>Grupo</th>
                 <th>Ativo</th>
                 <th>Especificações</th>
@@ -211,18 +210,17 @@ export default function EstoqueTable({ refreshTrigger }) {
                 const labelAtivo = LABEL_ATIVO[row.tipo_ativo] || row.tipo_ativo || '—';
 
                 return (
-                  <tr key={row.id} className={modoEdicao ? 'row-editavel' : ''}>
-                    {modoEdicao && (
-                      <td>
-                        <button
-                          className="row-edit-btn"
-                          title="Editar este item"
-                          onClick={() => handleSelecionarItem(row)}
-                        >
-                          ✏️
-                        </button>
-                      </td>
-                    )}
+                  <tr
+                    key={row.id}
+                    className={modoEdicao ? 'row-editavel' : ''}
+                    onClick={() => { if (modoEdicao) handleSelecionarItem(row); }}
+                    tabIndex={modoEdicao ? 'button' : undefined}
+                    ondeKeyDown={e => {
+                      if (modoEdicao && e.key === 'Enter' || e.key === ' ') {
+                        handleSelecionarItem(row);
+                      }
+                    }}
+                  >
                     <td>
                       <span
                         className="cat-tag"

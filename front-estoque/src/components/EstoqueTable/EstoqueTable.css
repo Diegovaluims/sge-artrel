@@ -193,21 +193,9 @@
 }
 
 .row-editavel {
-  cursor: default;
+  cursor: pointer;
 }
 
-.row-edit-btn {
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 0.25rem 0.4rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-.row-edit-btn:hover {
-  background: rgba(99,102,241,.12);
-  border-color: rgba(99,102,241,.4);
-  color: var(--color-accent);
+.row-editavel:hover {
+  background: var(--color-hover, rgba(99,102,241,.12));
 }
