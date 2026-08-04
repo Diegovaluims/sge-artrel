@@ -18,7 +18,7 @@ RETURNS JSON
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_operacao   TEXT;
+    v_operacao   operacao_auditoria_enum;
     v_antes      JSONB;
     v_resultado  JSON;
 BEGIN

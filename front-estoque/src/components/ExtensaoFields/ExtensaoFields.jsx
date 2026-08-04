@@ -47,6 +47,10 @@ export const ESTADO_SPECS = {
   ct_tipo: '', ct_polos: '', ct_tensao_v: '', ct_corrente_a: '', ct_contatos_na: '', ct_contatos_nf: '',
   // Contatos Auxiliares
   ca_contatos_na: '', ca_contatos_nf: '', ca_corrente_a: '',
+  // Parafuso
+  pa_tipo: '', pa_dimensao: '', pa_furo: '',
+  // Arruela
+  ar_tipo: '', ar_dimensao: '', ar_furo: '',
   // Terminal
   te_tipo: '', te_uso: '', te_tensao: '', te_bitola: '',
 };
@@ -72,6 +76,11 @@ export function montarEspecificacoes(tipoAtivo, form) {
   const spec = {};
 
   switch (tipoAtivo) {
+
+    /*
+    Proteção e Chaveamento
+    */
+
     case 'DISJUNTOR':
       add(spec, 'tipo',        s(form.dj_tipo));
       add(spec, 'polos',       s(form.dj_polos));
@@ -119,6 +128,10 @@ export function montarEspecificacoes(tipoAtivo, form) {
       addCamposEletricos(spec);
       add(spec, 'corrente_ka', n(form.pr_corrente_ka));
       break;
+    
+    /*
+    Condutores
+    */
 
     case 'CABO':
       add(spec, 'material',   s(form.cb_material));
@@ -127,6 +140,10 @@ export function montarEspecificacoes(tipoAtivo, form) {
       // cb_tensao_v intencionalmente omitido — tensão relevante é Vi/Ui
       addCamposEletricos(spec);
       break;
+
+    /*
+    Contatores
+    */
 
     case 'CONTATOR':
       add(spec, 'tipo',        s(form.ct_tipo));
@@ -138,6 +155,10 @@ export function montarEspecificacoes(tipoAtivo, form) {
       add(spec, 'corrente_a',  n(form.ct_corrente_a));
       break;
 
+    /*
+    Acessórios
+    */
+
     case 'CONTATOS_AUXILIARES':
       add(spec, 'contatos_na', n(form.ca_contatos_na));
       add(spec, 'contatos_nf', n(form.ca_contatos_nf));
@@ -145,7 +166,29 @@ export function montarEspecificacoes(tipoAtivo, form) {
       add(spec, 'corrente_a',  n(form.ca_corrente_a));
       break;
 
-    // Ativos sem campos definidos ainda: JSONB vazio
+    /*
+    Infraestrutura, Ferragem e Terminações
+    */
+
+    case 'PARAFUSO':
+      add(spec, 'tipo', s(form.pa_tipo));
+      add(spec, 'dimensao', s(form.pa_dimensao));
+      add(spec, 'furo', s(form.pa_furo));
+      break;
+
+    case 'ARRUELA':
+      add(spec, 'tipo', s(form.ar_tipo));
+      add(spec, 'dimensao', s(form.ar_dimensao));
+      add(spec, 'furo', s(form.ar_furo));
+      break;
+    
+    case 'TERMINAL':
+      add(spec, 'tipo', s(form.te_tipo));
+      add(spec, 'uso', s(form.te_uso));
+      add(spec, 'tensao_v', n(form.te_tensao));
+      add(spec, 'bitola_mm2', n(form.te_bitola));
+      break;
+
     default:
       break;
   }
@@ -261,17 +304,17 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="dj_potencia_kw">Potência (kW)</label>
             <input id="dj_potencia_kw" name="dj_potencia_kw" type="number" step="0.1" min="0"
-              placeholder="ex: 5.5" value={form.dj_potencia_kw} onChange={onChange} />
+              placeholder="ex. 5.5" value={form.dj_potencia_kw} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="dj_tensao_v">Tensão (V)</label>
             <input id="dj_tensao_v" name="dj_tensao_v" type="number" min="0"
-              placeholder="ex: 380" value={form.dj_tensao_v} onChange={onChange} />
+              placeholder="ex. 380" value={form.dj_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (V)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <CorrenteInput id="dj_corrente_a" name="dj_corrente_a"
             value={form.dj_corrente_a} tipoValue={form.ce_tipo_corrente}
@@ -279,7 +322,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -309,12 +352,12 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="md_tensao_v">Tensão (V)</label>
             <input id="md_tensao_v" name="md_tensao_v" type="number" min="0"
-              placeholder="ex: 230" value={form.md_tensao_v} onChange={onChange} />
+              placeholder="ex. 230" value={form.md_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 440" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 440" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <CorrenteInput id="md_corrente_a" name="md_corrente_a"
             value={form.md_corrente_a} tipoValue={form.ce_tipo_corrente}
@@ -322,7 +365,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 6" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 6" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -355,17 +398,17 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="rl_faixa_tempo_s">Faixa de Tempo (s)</label>
             <input id="rl_faixa_tempo_s" name="rl_faixa_tempo_s" type="number" step="0.1" min="0"
-              placeholder="ex: 30" value={form.rl_faixa_tempo_s} onChange={onChange} />
+              placeholder="ex. 30" value={form.rl_faixa_tempo_s} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="rl_tensao_v">Tensão de Bobina (V)</label>
             <input id="rl_tensao_v" name="rl_tensao_v" type="number" min="0"
-              placeholder="ex: 220" value={form.rl_tensao_v} onChange={onChange} />
+              placeholder="ex. 220" value={form.rl_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <CorrenteInput
             id="rl_corrente_a"          name="rl_corrente_a"          value={form.rl_corrente_a}
@@ -375,7 +418,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -395,12 +438,12 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="fus_tensao_v">Tensão (V)</label>
             <input id="fus_tensao_v" name="fus_tensao_v" type="number" min="0"
-              placeholder="ex: 500" value={form.fus_tensao_v} onChange={onChange} />
+              placeholder="ex. 500" value={form.fus_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <CorrenteInput id="fus_corrente_a" name="fus_corrente_a"
             value={form.fus_corrente_a} tipoValue={form.ce_tipo_corrente}
@@ -408,7 +451,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -430,12 +473,12 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="chv_tensao_v">Tensão (V)</label>
             <input id="chv_tensao_v" name="chv_tensao_v" type="number" min="0"
-              placeholder="ex: 380" value={form.chv_tensao_v} onChange={onChange} />
+              placeholder="ex. 380" value={form.chv_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <CorrenteInput id="chv_corrente_a" name="chv_corrente_a"
             value={form.chv_corrente_a} tipoValue={form.ce_tipo_corrente}
@@ -443,7 +486,7 @@ export function ExtProtecaoChaveamento({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -523,7 +566,7 @@ export function ExtContatores({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ct_polos">Polos</label>
             <input id="ct_polos" name="ct_polos" type="number" min="1" step="1"
-              placeholder="ex: 3" value={form.ct_polos} onChange={onChange} />
+              placeholder="ex. 3" value={form.ct_polos} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ct_contatos_na">Contatos NA</label>
@@ -538,12 +581,12 @@ export function ExtContatores({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ct_tensao_v">Tensão de Funcionamento (V)</label>
             <input id="ct_tensao_v" name="ct_tensao_v" type="number" min="0"
-              placeholder="ex: 380" value={form.ct_tensao_v} onChange={onChange} />
+              placeholder="ex. 380" value={form.ct_tensao_v} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 690" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 690" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <CorrenteInput
             id="ct_corrente_a"          name="ct_corrente_a"          value={form.ct_corrente_a}
@@ -553,7 +596,7 @@ export function ExtContatores({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -594,7 +637,7 @@ export function ExtCondutores({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="cb_bitola_mm2">Bitola (mm²)</label>
             <input id="cb_bitola_mm2" name="cb_bitola_mm2" type="number" step="0.5" min="0"
-              placeholder="ex: 16.0" value={form.cb_bitola_mm2} onChange={onChange} />
+              placeholder="ex. 16.0" value={form.cb_bitola_mm2} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="cb_isolamento">Isolamento</label>
@@ -609,12 +652,12 @@ export function ExtCondutores({ form, onChange }) {
           <div className="form-field">
             <label htmlFor="ce_tensao_isolamento">Tensão de Isolamento (kV)</label>
             <input id="ce_tensao_isolamento" name="ce_tensao_isolamento" type="number" min="0"
-              placeholder="ex: 1000" value={form.ce_tensao_isolamento} onChange={onChange} />
+              placeholder="ex. 1000" value={form.ce_tensao_isolamento} onChange={onChange} />
           </div>
           <div className="form-field">
             <label htmlFor="ce_corrente_cc">Corrente de Curto-Circuito (kA)</label>
             <input id="ce_corrente_cc" name="ce_corrente_cc" type="number" step="0.1" min="0"
-              placeholder="ex: 10" value={form.ce_corrente_cc} onChange={onChange} />
+              placeholder="ex. 10" value={form.ce_corrente_cc} onChange={onChange} />
           </div>
         </div>
       )}
@@ -753,6 +796,44 @@ export function ExtInfraestruturaFerragem({ form, onChange }) {
           </select>
         </div>
       </div>
+      {tipo === 'PARAFUSO' && (
+        <div className="form-grid">
+          <div className="form-field">
+            <label htmlFor="pa_tipo">Tipo de Parafuso</label>
+            <select id="pa_tipo" name="pa_tipo" value={form.pa_tipo} onChange={onChange}>
+              <option value="">—</option>
+              <option>Francês</option>
+              <option>Quadrado</option>
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor='pa_dimensao'>Dimensão</label>
+            <input id='pa_dimensao' name='pa_dimensao' type='text'
+            placeholder='ex. 16x300' value={form.pa_dimensao} onChange={onChange} />
+          </div>
+        </div>
+      )}
+      {tipo === 'ARRUELA' && (
+        <div className="form-grid">
+          <div className="form-field">
+            <label htmlFor="ar_tipo">Tipo</label>
+            <select id="ar_tipo" name="ar_tipo" value={form.ar_tipo} onChange={onChange}>
+              <option value="">—</option>
+              <option>Quadrada</option>
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor='ar_dimensao'>Dimensão</label>
+            <input id='ar_dimensao' name='ar_dimensao' type='text'
+            placeholder='ex. 20x20' value={form.ar_dimensao} onChange={onChange} />
+          </div>
+          <div className="form-field">
+            <label htmlFor='ar_furo' name='ar_furo'>Furo (polegadas ou mm)</label>
+            <input id='ar_furo' name='ar_furo' type='text'
+            placeholder='ex. 3/8 ou 8' value={form.ar_furo} onChange={onChange} />
+          </div>
+        </div>
+      )}
       {tipo === 'TERMINAL' && (
         <div className="form-grid">
           <div className="form-field">

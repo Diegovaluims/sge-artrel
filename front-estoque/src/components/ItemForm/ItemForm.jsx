@@ -9,7 +9,7 @@ import {
   ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
   ExtDispositivosPartida, ExtPainelAutomacao, ExtAcessorios,
   ExtInfraestruturaFerragem, ExtTransformadores,
-} from './ExtensaoFields.jsx';
+} from '../ExtensaoFields/ExtensaoFields.jsx';
 import GroupSelect from '../GroupSelect/GroupSelect.jsx';
 import NumberInput from '../NumberInput/NumberInput.jsx';
 import { useToast } from '../../context/ToastContext.jsx';

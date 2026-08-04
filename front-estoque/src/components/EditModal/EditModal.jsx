@@ -10,7 +10,7 @@ import {
   ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
   ExtDispositivosPartida, ExtPainelAutomacao, ExtAcessorios,
   ExtInfraestruturaFerragem, ExtTransformadores,
-} from '../ItemForm/ExtensaoFields.jsx';
+} from '../ExtensaoFields/ExtensaoFields.jsx';
 import NumberInput from '../NumberInput/NumberInput.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
@@ -29,6 +29,10 @@ function hidratarSpecs(tipoAtivo, jsonb) {
   };
 
   switch (tipoAtivo) {
+
+    /*
+    Proteção e Chaveamento
+    */
     case 'DISJUNTOR':
       return {
         ...specsEletricas,
@@ -38,14 +42,16 @@ function hidratarSpecs(tipoAtivo, jsonb) {
         dj_corrente_a:  g('corrente_a'),
         dj_potencia_kw: g('potencia_kw'),
       };
+
     case 'MINI_DISJUNTOR':
       return {
         ...specsEletricas,
-        md_curva:     g('curva'),
-        md_polos:     g('polos'),
-        md_tensao_v:  g('tensao_v'),
+        md_curva:      g('curva'),
+        md_polos:      g('polos'),
+        md_tensao_v:   g('tensao_v'),
         md_corrente_a: g('corrente_a'),
       };
+
     case 'RELE':
       return {
         ...specsEletricas,
@@ -56,27 +62,35 @@ function hidratarSpecs(tipoAtivo, jsonb) {
         rl_contatos_nf:   g('contatos_nf'),
         rl_faixa_tempo_s: g('faixa_tempo_s'),
       };
+
     case 'FUSIVEL':
       return {
         ...specsEletricas,
-        fus_tipo:      g('tipo'),
-        fus_tensao_v:  g('tensao_v'),
+        fus_tipo:       g('tipo'),
+        fus_tensao_v:   g('tensao_v'),
         fus_corrente_a: g('corrente_a'),
       };
+
     case 'CHAVE':
       return {
         ...specsEletricas,
-        chv_tipo:      g('tipo'),
-        chv_tensao_v:  g('tensao_v'),
+        chv_tipo:       g('tipo'),
+        chv_tensao_v:   g('tensao_v'),
         chv_corrente_a: g('corrente_a'),
       };
+
     case 'PARA-RAIO':
       return {
         ...specsEletricas,
-        pr_material:   g('material'),
-        pr_tensao_v:   g('tensao_v'),
+        pr_material:    g('material'),
+        pr_tensao_v:    g('tensao_v'),
         pr_corrente_ka: g('corrente_ka'),
       };
+
+    /*
+    Condutores
+    */
+
     case 'CABO':
       return {
         ...specsEletricas,
@@ -84,6 +98,11 @@ function hidratarSpecs(tipoAtivo, jsonb) {
         cb_bitola_mm2: g('bitola_mm2'),
         cb_isolamento: g('isolamento'),
       };
+
+    /*
+    Contatores
+    */
+
     case 'CONTATOR':
       return {
         ...specsEletricas,
@@ -94,6 +113,7 @@ function hidratarSpecs(tipoAtivo, jsonb) {
         ct_contatos_na: g('contatos_na'),
         ct_contatos_nf: g('contatos_nf'),
       };
+
     case 'CONTATOS_AUXILIARES':
       return {
         ...specsEletricas,
@@ -101,6 +121,25 @@ function hidratarSpecs(tipoAtivo, jsonb) {
         ca_contatos_nf: g('contatos_nf'),
         ca_corrente_a:  g('corrente_a'),
       };
+
+    /*
+    Infraestrutura, Ferragem e Terminações
+    */
+
+    case 'PARAFUSO':
+      return {
+        pa_tipo:     g('tipo'),
+        pa_dimensao: g('dimensao'),
+        pa_furo:     g('furo'),
+      };
+
+    case 'ARRUELA':
+      return {
+        ar_tipo:     g('tipo'),
+        ar_dimensao: g('dimensao'),
+        ar_furo:     g('furo'),
+      };
+
     default:
       return specsEletricas;
   }

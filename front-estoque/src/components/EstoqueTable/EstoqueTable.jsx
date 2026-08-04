@@ -3,7 +3,7 @@
 // Colunas: Grupo (grupo_funcional badge) + Ativo (tipo_ativo) + demais.
 // Especificações lidas de row.especificacoes (JSONB plano da view).
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { POSTGREST_URL } from '../../config.js';
 import EditModal from '../EditModal/EditModal.jsx';
 import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
@@ -30,6 +30,12 @@ function getInfoTecnica(row) {
   if (spec.corrente_cc)      partes.push(`${spec.corrente_cc} kA Icc`);
   if (spec.tensao_isolamento) partes.push(`${spec.tensao_isolamento} Vi`);
 
+  /*
+  Infraestrutura, Ferragem e Terminações
+  */
+ 
+  if (spec.dimensao)     partes.push(`${spec.dimensao}`);
+  if (spec.furo)         partes.push(`Furo: ${spec.furo}`);
 
   return partes.length > 0 ? partes.join(' · ') : '—';
 }
@@ -50,11 +56,10 @@ export default function EstoqueTable({ refreshTrigger }) {
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [fabricantes, setFabricantes] = useState([]);
 
-  const recarregar = () => { setLoading(true); setErro(null); setPagina(1); };
-
-  useEffect(() => {
-    let ativo = true;
+  const fetchDados = useCallback(() => {
     setLoading(true);
+    setErro(null);
+
     fetch(`${POSTGREST_URL}/v_estoque_completo?order=criado_em.desc&limit=${LIMIT}&offset=${(pagina - 1) * LIMIT}`, {
       headers: { Accept: 'application/json', Prefer: 'count=exact' },
     })
@@ -67,10 +72,17 @@ export default function EstoqueTable({ refreshTrigger }) {
         }
         return res.json();
       })
-      .then(json => { if (ativo) { setDados(json); setLoading(false); } })
-      .catch(e => { if (ativo) { setErro(e.message); setLoading(false); } });
-    return () => { ativo = false; };
-  }, [pagina, refreshTrigger]);
+      .then(json => { setDados(json); setLoading(false); })
+      .catch(e => { setErro(e.message); setLoading(false); });
+  }, [pagina]);
+
+  useEffect(() => {
+    fetchDados();
+  }, [fetchDados, refreshTrigger]);
+
+  const recarregar = () => {
+    fetchDados();
+  };
 
   useEffect(() => {
     fetch(`${POSTGREST_URL}/fabricantes?order=nome.asc&select=id,nome,apelido`, {
