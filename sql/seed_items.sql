@@ -30,7 +30,7 @@ SELECT inserir_item_estoque('{
         "tipo": "Motor",
         "polos": "Tripolar",
         "potencia_kw": 5.5,
-        "tensao_v": 380,
+        "tensao_nominal_v": 380,
         "tipo_corrente": "AC",
         "corrente_a": 11.0
     }
@@ -48,9 +48,9 @@ SELECT inserir_item_estoque('{
     "localizacao_prateleira": "A-02",
     "condicao": "NOVO",
     "especificacoes": {
-        "curva": "C",
+        "curva_funcionamento": "C",
         "polos": "Tripolar",
-        "tensao_v": 230,
+        "tensao_nominal_v": 230,
         "tipo_corrente": "AC",
         "corrente_a": 16
     }
@@ -73,7 +73,7 @@ SELECT inserir_item_estoque('{
         "contatos_na": 1,
         "contatos_nf": 1,
         "faixa_tempo_s": 30,
-        "tensao_v": 230,
+        "tensao_nominal_v": 230,
         "tipo_corrente": "AC",
         "corrente_a": 8
     }
@@ -92,7 +92,7 @@ SELECT inserir_item_estoque('{
     "condicao": "NOVO",
     "especificacoes": {
         "tipo": "NH",
-        "tensao_v": 500,
+        "tensao_nominal_v": 500,
         "tipo_corrente": "AC",
         "corrente_a": 32
     }
@@ -111,7 +111,7 @@ SELECT inserir_item_estoque('{
     "condicao": "NOVO",
     "especificacoes": {
         "tipo": "Seccionadora",
-        "tensao_v": 400,
+        "tensao_nominal_v": 400,
         "tipo_corrente": "AC",
         "corrente_a": 25
     }
@@ -130,7 +130,7 @@ SELECT inserir_item_estoque('{
     "condicao": "NOVO",
     "especificacoes": {
         "material": "Óxido de Zinco",
-        "tensao_v": 385,
+        "tensao_nominal_v": 385,
         "corrente_ka": 20
     }
 }'::JSON);
@@ -220,7 +220,7 @@ SELECT inserir_item_estoque('{
         "polos": 3,
         "contatos_na": 1,
         "contatos_nf": 0,
-        "tensao_v": 24,
+        "tensao_nominal_v": 24,
         "tipo_corrente": "DC",
         "corrente_a": 7
     }
@@ -434,7 +434,7 @@ SELECT inserir_item_estoque('{
 -- 26. CURVA
 SELECT inserir_item_estoque('{
     "grupo_funcional": "ACESSORIOS",
-    "tipo_ativo": "CURVA",
+    "tipo_ativo": "curva_funcionamento",
     "fabricante_apelido": "Pirastic",
     "modelo_referencia": "CURVA-34-90G",
     "descricao": "Curva 90° para eletroduto PVC 3/4\"",
@@ -646,6 +646,99 @@ SELECT inserir_item_estoque('{
     "localizacao": "MEZANINO",
     "localizacao_prateleira": "M-08",
     "condicao": "NOVO"
+}'::JSON);
+
+-- =============================================================================
+-- GRUPO: INFRAESTRUTURA_FERRAGEM — novos ativos (6 tipos)
+-- =============================================================================
+
+-- CRUZETA_FIBRA
+SELECT inserir_item_estoque('{
+    "grupo_funcional": "INFRAESTRUTURA_FERRAGEM",
+    "tipo_ativo": "CRUZETA_FIBRA",
+    "descricao": "Cruzeta de fibra de vidro 1800mm",
+    "quantidade": 10,
+    "localizacao": "GALPAO",
+    "localizacao_prateleira": "G-01",
+    "condicao": "NOVO",
+    "especificacoes": {
+        "comprimento_mm": 1800,
+        "seccao_transversal": "90x90"
+    }
+}'::JSON);
+
+-- ALCA_PREFORMADA
+SELECT inserir_item_estoque('{
+    "grupo_funcional": "INFRAESTRUTURA_FERRAGEM",
+    "tipo_ativo": "ALCA_PREFORMADA",
+    "descricao": "Alça pré-formada de distribuição p/ cabo de alumínio",
+    "quantidade": 20,
+    "localizacao": "GALPAO",
+    "localizacao_prateleira": "G-02",
+    "condicao": "NOVO",
+    "especificacoes": {
+        "tipo": "p/ cabo de alumínio"
+    }
+}'::JSON);
+
+-- ARMACAO_SECUNDARIA
+SELECT inserir_item_estoque('{
+    "grupo_funcional": "INFRAESTRUTURA_FERRAGEM",
+    "tipo_ativo": "ARMACAO_SECUNDARIA",
+    "descricao": "Armação secundária 1x2 pesado",
+    "quantidade": 8,
+    "localizacao": "GALPAO",
+    "localizacao_prateleira": "G-03",
+    "condicao": "NOVO",
+    "especificacoes": {
+        "estribos": "1x2",
+        "tipo": "pesado"
+    }
+}'::JSON);
+
+-- CINTA_CIRCULAR
+SELECT inserir_item_estoque('{
+    "grupo_funcional": "INFRAESTRUTURA_FERRAGEM",
+    "tipo_ativo": "CINTA_CIRCULAR",
+    "descricao": "Cinta circular diâmetro interno 38mm",
+    "quantidade": 30,
+    "localizacao": "GALPAO",
+    "localizacao_prateleira": "G-04",
+    "condicao": "NOVO",
+    "especificacoes": {
+        "diametro_mm": 38
+    }
+}'::JSON);
+
+-- ISOLADOR
+SELECT inserir_item_estoque('{
+    "grupo_funcional": "INFRAESTRUTURA_FERRAGEM",
+    "tipo_ativo": "ISOLADOR",
+    "descricao": "Isolador de ancoragem em porcelana 15kV",
+    "quantidade": 12,
+    "localizacao": "GALPAO",
+    "localizacao_prateleira": "G-05",
+    "condicao": "NOVO",
+    "especificacoes": {
+        "tipo": "de ancoragem",
+        "material": "porcelana",
+        "tensao_isolamento": 15000
+    }
+}'::JSON);
+
+-- MAO_FRANCESA
+SELECT inserir_item_estoque('{
+    "grupo_funcional": "INFRAESTRUTURA_FERRAGEM",
+    "tipo_ativo": "MAO_FRANCESA",
+    "descricao": "Mão francesa plana 300mm",
+    "quantidade": 15,
+    "localizacao": "GALPAO",
+    "localizacao_prateleira": "G-06",
+    "condicao": "NOVO",
+    "especificacoes": {
+        "tipo": "plana",
+        "comprimento_mm": 300
+    }
 }'::JSON);
 
 -- =============================================================================

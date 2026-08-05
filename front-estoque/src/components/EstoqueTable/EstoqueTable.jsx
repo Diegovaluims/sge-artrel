@@ -17,26 +17,30 @@ function getInfoTecnica(row) {
   // Campos comuns mais relevantes para exibição
   if (spec.tipo)         partes.push(`${spec.tipo}`);
   if (spec.polos)        partes.push(`${spec.polos}`);
-  if (spec.curva)        partes.push(`Curva ${spec.curva}`);
+  if (spec.curva_funcionamento) partes.push(`Curva ${spec.curva_funcionamento}`);
   if (spec.corrente_a)   partes.push(`${spec.corrente_a} A`);
   if (spec.corrente_min_a && spec.corrente_max_a)
     partes.push(`${spec.corrente_min_a}–${spec.corrente_max_a} A`);
-  if (spec.tensao_v)     partes.push(`${spec.tensao_v} V`);
+  if (spec.tensao_nominal_v) partes.push(`${spec.tensao_nominal_v} V`);
   if (spec.potencia_kw)  partes.push(`${spec.potencia_kw} kW`);
   if (spec.material)     partes.push(spec.material);
   if (spec.bitola_mm2)   partes.push(`${spec.bitola_mm2} mm²`);
   if (spec.isolamento)   partes.push(spec.isolamento);
   if (spec.tipo_corrente)    partes.push(spec.tipo_corrente);
   if (spec.corrente_cc)      partes.push(`${spec.corrente_cc} kA Icc`);
+  if (spec.corrente_ka)      partes.push(`${spec.corrente_ka} kA`);
   if (spec.tensao_isolamento) partes.push(`${spec.tensao_isolamento} Vi`);
 
   /*
   Infraestrutura, Ferragem e Terminações
   */
  
-  if (spec.dimensao)     partes.push(`${spec.dimensao}`);
-  if (spec.furo)         partes.push(`Furo: ${spec.furo}`);
-
+  if (spec.dimensao)          partes.push(`${spec.dimensao}`);
+  if (spec.furo)              partes.push(`Furo: ${spec.furo}`);
+  if (spec.comprimento_mm)    partes.push(`${spec.comprimento_mm} mm`);
+  if (spec.seccao_transversal) partes.push(`Secção ${spec.seccao_transversal}`);
+  if (spec.estribos)          partes.push(`${spec.estribos} estribos`);
+  if (spec.diametro_mm)       partes.push(`Ø ${spec.diametro_mm} mm`);
   return partes.length > 0 ? partes.join(' · ') : '—';
 }
 

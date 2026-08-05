@@ -16,16 +16,16 @@ import { useToast } from '../../context/ToastContext.jsx';
 import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
 import './EditModal.css';
 
-// Achata especificacoes JSONB para o estado flat de specs
+// Achata especificacoes JSONB para o estado flat de specs (chaves genéricas)
 function hidratarSpecs(tipoAtivo, jsonb) {
   if (!jsonb || typeof jsonb !== 'object') return {};
   const g = (key, fallback = '') => jsonb[key] !== undefined ? String(jsonb[key]) : fallback;
 
   const specsEletricas = {
-    ce_tipo_corrente:     g('tipo_corrente'),
-    ce_corrente_min_a:    g('corrente_min_a'),
-    ce_corrente_cc:       g('corrente_cc'),
-    ce_tensao_isolamento: g('tensao_isolamento'),
+    tipo_corrente:     g('tipo_corrente'),
+    corrente_min_a:    g('corrente_min_a'),
+    corrente_cc:       g('corrente_cc'),
+    tensao_isolamento: g('tensao_isolamento'),
   };
 
   switch (tipoAtivo) {
@@ -36,55 +36,55 @@ function hidratarSpecs(tipoAtivo, jsonb) {
     case 'DISJUNTOR':
       return {
         ...specsEletricas,
-        dj_tipo:        g('tipo'),
-        dj_polos:       g('polos'),
-        dj_tensao_v:    g('tensao_v'),
-        dj_corrente_a:  g('corrente_a'),
-        dj_potencia_kw: g('potencia_kw'),
+        tipo:         g('tipo'),
+        polos:        g('polos'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_a:   g('corrente_a'),
+        potencia_kw:  g('potencia_kw'),
       };
 
     case 'MINI_DISJUNTOR':
       return {
         ...specsEletricas,
-        md_curva:      g('curva'),
-        md_polos:      g('polos'),
-        md_tensao_v:   g('tensao_v'),
-        md_corrente_a: g('corrente_a'),
+        curva_funcionamento: g('curva_funcionamento'),
+        polos:        g('polos'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_a:   g('corrente_a'),
       };
 
     case 'RELE':
       return {
         ...specsEletricas,
-        rl_tipo:          g('tipo'),
-        rl_tensao_v:      g('tensao_v'),
-        rl_corrente_a:    g('corrente_a'),
-        rl_contatos_na:   g('contatos_na'),
-        rl_contatos_nf:   g('contatos_nf'),
-        rl_faixa_tempo_s: g('faixa_tempo_s'),
+        tipo:         g('tipo'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_a:   g('corrente_a'),
+        contatos_na:  g('contatos_na'),
+        contatos_nf:  g('contatos_nf'),
+        faixa_tempo_s: g('faixa_tempo_s'),
       };
 
     case 'FUSIVEL':
       return {
         ...specsEletricas,
-        fus_tipo:       g('tipo'),
-        fus_tensao_v:   g('tensao_v'),
-        fus_corrente_a: g('corrente_a'),
+        tipo:         g('tipo'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_a:   g('corrente_a'),
       };
 
     case 'CHAVE':
       return {
         ...specsEletricas,
-        chv_tipo:       g('tipo'),
-        chv_tensao_v:   g('tensao_v'),
-        chv_corrente_a: g('corrente_a'),
+        tipo:         g('tipo'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_a:   g('corrente_a'),
       };
 
     case 'PARA-RAIO':
       return {
         ...specsEletricas,
-        pr_material:    g('material'),
-        pr_tensao_v:    g('tensao_v'),
-        pr_corrente_ka: g('corrente_ka'),
+        material:     g('material'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_ka:  g('corrente_ka'),
       };
 
     /*
@@ -94,9 +94,9 @@ function hidratarSpecs(tipoAtivo, jsonb) {
     case 'CABO':
       return {
         ...specsEletricas,
-        cb_material:   g('material'),
-        cb_bitola_mm2: g('bitola_mm2'),
-        cb_isolamento: g('isolamento'),
+        material:     g('material'),
+        bitola_mm2:   g('bitola_mm2'),
+        isolamento:   g('isolamento'),
       };
 
     /*
@@ -106,20 +106,20 @@ function hidratarSpecs(tipoAtivo, jsonb) {
     case 'CONTATOR':
       return {
         ...specsEletricas,
-        ct_tipo:        g('tipo'),
-        ct_polos:       g('polos'),
-        ct_tensao_v:    g('tensao_v'),
-        ct_corrente_a:  g('corrente_a'),
-        ct_contatos_na: g('contatos_na'),
-        ct_contatos_nf: g('contatos_nf'),
+        tipo:         g('tipo'),
+        polos:        g('polos'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        corrente_a:   g('corrente_a'),
+        contatos_na:  g('contatos_na'),
+        contatos_nf:  g('contatos_nf'),
       };
 
     case 'CONTATOS_AUXILIARES':
       return {
         ...specsEletricas,
-        ca_contatos_na: g('contatos_na'),
-        ca_contatos_nf: g('contatos_nf'),
-        ca_corrente_a:  g('corrente_a'),
+        contatos_na:  g('contatos_na'),
+        contatos_nf:  g('contatos_nf'),
+        corrente_a:   g('corrente_a'),
       };
 
     /*
@@ -128,16 +128,55 @@ function hidratarSpecs(tipoAtivo, jsonb) {
 
     case 'PARAFUSO':
       return {
-        pa_tipo:     g('tipo'),
-        pa_dimensao: g('dimensao'),
-        pa_furo:     g('furo'),
+        tipo:     g('tipo'),
+        dimensao: g('dimensao'),
+        furo:     g('furo'),
       };
 
     case 'ARRUELA':
       return {
-        ar_tipo:     g('tipo'),
-        ar_dimensao: g('dimensao'),
-        ar_furo:     g('furo'),
+        tipo:     g('tipo'),
+        dimensao: g('dimensao'),
+        furo:     g('furo'),
+      };
+
+    case 'TERMINAL':
+      return {
+        tipo:             g('tipo'),
+        uso:              g('uso'),
+        tensao_nominal_v: g('tensao_nominal_v'),
+        bitola_mm2:       g('bitola_mm2'),
+      };
+
+    case 'CRUZETA_FIBRA':
+      return {
+        comprimento_mm:     g('comprimento_mm'),
+        seccao_transversal: g('seccao_transversal'),
+      };
+
+    case 'ALCA_PREFORMADA':
+      return { tipo: g('tipo') };
+
+    case 'ARMACAO_SECUNDARIA':
+      return {
+        estribos: g('estribos'),
+        tipo:     g('tipo'),
+      };
+
+    case 'CINTA_CIRCULAR':
+      return { diametro_mm: g('diametro_mm') };
+
+    case 'ISOLADOR':
+      return {
+        ...specsEletricas,
+        tipo:     g('tipo'),
+        material: g('material'),
+      };
+
+    case 'MAO_FRANCESA':
+      return {
+        tipo:          g('tipo'),
+        comprimento_mm: g('comprimento_mm'),
       };
 
     default:

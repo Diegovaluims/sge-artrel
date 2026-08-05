@@ -5,6 +5,7 @@ import { useState, useCallback } from 'react';
 import Footer from './components/Footer/Footer';
 import EstoqueTable from './components/EstoqueTable/EstoqueTable.jsx';
 import ItemForm from './components/ItemForm/ItemForm.jsx';
+import HistoricoMovimentacao from './components/HistoricoMovimentacao/HistoricoMovimentacao.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { TiposAtivoProvider } from './context/TiposAtivoContext.jsx';
 import ToastContainer from './components/ToastContainer/ToastContainer.jsx';
@@ -80,6 +81,9 @@ export default function App() {
           )}
           {tabAtiva === 'cadastrar' && (
             <ItemForm onItemSalvo={handleItemSalvo} focarCategoria={focarCategoria}/>
+          )}
+          {tabAtiva === 'historico' && (
+            <HistoricoMovimentacao />
           )}
         </main>
         <Footer />
