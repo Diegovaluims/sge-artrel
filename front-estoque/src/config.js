@@ -5,10 +5,14 @@ export const POSTGREST_URL = import.meta.env.VITE_POSTGREST_URL || 'http://local
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export function apiHeaders(extra = {}) {
-  return {
-    Accept: 'application/json',
-    apikey: SUPABASE_ANON_KEY,
-    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    ...extra,
-  };
+  const headers = { Accept: 'application/json', ...extra };
+
+  // Injeta autenticação apenas quando a chave existe (Supabase).
+  // Dev local (PostgREST sem jwt-secret) não recebe Bearer vazio — evita HTTP 400.
+  if (SUPABASE_ANON_KEY) {
+    headers.apikey = SUPABASE_ANON_KEY;
+    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
+  }
+
+  return headers;
 }
