@@ -4,7 +4,7 @@
 // grupo_funcional e tipo_ativo são imutáveis após o cadastro.
 
 import { useState, useEffect } from 'react';
-import { POSTGREST_URL } from '../../config.js';
+import { POSTGREST_URL, apiHeaders } from '../../config.js';
 import {
   CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
   ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
@@ -244,7 +244,7 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/atualizar_item_estoque`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: apiHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ p_id: item.id, p_dados: payload }),
       });
       if (!res.ok) {
@@ -268,7 +268,7 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/atualizar_item_estoque`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: apiHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ p_id: item.id, p_dados: { status: 'DESCARTADO' } }),
       });
       if (!res.ok) {

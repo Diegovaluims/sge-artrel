@@ -3,7 +3,7 @@
 // Fluxo: grupo_funcional (5 grandes grupos) → tipo_ativo → campos de spec (JSONB).
 
 import { useState, useEffect, useRef } from 'react';
-import { POSTGREST_URL } from '../../config.js';
+import { POSTGREST_URL, apiHeaders } from '../../config.js';
 import {
   CAMPOS_SPECS, ESTADO_SPECS, montarEspecificacoes,
   ExtProtecaoChaveamento, ExtContatores, ExtCondutores,
@@ -58,7 +58,7 @@ export default function ItemForm({ onItemSalvo, focarCategoria }) {
 
   useEffect(() => {
     fetch(`${POSTGREST_URL}/fabricantes?order=nome.asc&select=id,nome,apelido`, {
-      headers: { Accept: 'application/json' },
+      headers: apiHeaders(),
     })
       .then(r => r.json())
       .then(setFabricantes)
@@ -103,7 +103,7 @@ export default function ItemForm({ onItemSalvo, focarCategoria }) {
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/inserir_item_estoque`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: apiHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ p_dados: payload }),
       });
       if (!res.ok) {
