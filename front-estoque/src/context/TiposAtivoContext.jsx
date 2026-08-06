@@ -1,6 +1,6 @@
 // TiposAtivoContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { POSTGREST_URL } from '../config.js';
+import { POSTGREST_URL, apiHeaders } from '../config.js';
 
 const TiposAtivoContext = createContext(null);
 
@@ -21,7 +21,9 @@ export function TiposAtivoProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${POSTGREST_URL}/tipos_ativo?select=grupo_funcional,tipo_ativo`)
+    fetch(`${POSTGREST_URL}/tipos_ativo?select=grupo_funcional,tipo_ativo`, {
+      headers: apiHeaders(),
+    })
       .then(res => res.json())
       .then(data => {
         const mapaGrupos = {};

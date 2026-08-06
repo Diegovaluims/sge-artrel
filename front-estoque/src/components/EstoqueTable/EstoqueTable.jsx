@@ -4,7 +4,7 @@
 // Especificações lidas de row.especificacoes (JSONB plano da view).
 
 import { useState, useEffect, useCallback } from 'react';
-import { POSTGREST_URL } from '../../config.js';
+import { POSTGREST_URL, apiHeaders } from '../../config.js';
 import EditModal from '../EditModal/EditModal.jsx';
 import { useTiposAtivo } from '../../context/TiposAtivoContext.jsx';
 import './EstoqueTable.css';
@@ -65,7 +65,7 @@ export default function EstoqueTable({ refreshTrigger, onNovoItem }) {
     setErro(null);
 
     fetch(`${POSTGREST_URL}/v_estoque_completo?order=criado_em.desc&limit=${LIMIT}&offset=${(pagina - 1) * LIMIT}`, {
-      headers: { Accept: 'application/json', Prefer: 'count=exact' },
+      headers: apiHeaders({ Prefer: 'count=exact' }),
     })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
@@ -90,7 +90,7 @@ export default function EstoqueTable({ refreshTrigger, onNovoItem }) {
 
   useEffect(() => {
     fetch(`${POSTGREST_URL}/fabricantes?order=nome.asc&select=id,nome,apelido`, {
-      headers: { Accept: 'application/json' },
+      headers: apiHeaders(),
     })
       .then(r => r.json())
       .then(setFabricantes)
