@@ -22,7 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-postgrest.conf
 start-postgrest.bat
 mds/
 pdfs/
