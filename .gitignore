@@ -30,4 +30,5 @@ csvs/
 .gitignore
 .agents/
 CONTEXT.md
+.env.production
 .env
