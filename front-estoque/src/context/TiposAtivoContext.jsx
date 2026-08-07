@@ -26,6 +26,7 @@ export function TiposAtivoProvider({ children }) {
     })
       .then(res => res.json())
       .then(data => {
+        if (!Array.isArray(data)) throw new Error(`Resposta inesperada: ${JSON.stringify(data)}`);
         const mapaGrupos = {};
         const mapaLabels = {};
 
