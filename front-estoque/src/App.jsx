@@ -8,6 +8,8 @@ import ItemForm from './components/ItemForm/ItemForm.jsx';
 import HistoricoMovimentacao from './components/HistoricoMovimentacao/HistoricoMovimentacao.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { TiposAtivoProvider } from './context/TiposAtivoContext.jsx';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import Login from './components/Login/Login.jsx';
 import ToastContainer from './components/ToastContainer/ToastContainer.jsx';
 import logoArtrel from './assets/logo_artrel_novo.png';
 import './App.css';
@@ -19,13 +21,23 @@ const TABS = [
 ];
 
 export default function App() {
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
+    </ToastProvider>
+  );
+}
+
+// Guard de autenticação — renderiza Login até haver sessão válida
+function AppShell() {
+  const { usuario, loading, logout } = useAuth();
   const [tabAtiva, setTabAtiva] = useState('estoque');
-  // Trigger usado para notificar a tabela ao salvar novo item
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [focarCategoria, setFocarCategoria] = useState(false);
 
   const handleItemSalvo = useCallback(() => {
-    // Muda para a tab de estoque e força recarregamento
     setTabAtiva('estoque');
     setRefreshTrigger(k => k + 1);
   }, []);
@@ -40,11 +52,20 @@ export default function App() {
     setTabAtiva('cadastrar');
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-text-muted, #888)' }}>
+        Verificando sessão…
+      </div>
+    );
+  }
+
+  if (!usuario) return <Login />;
+
   return (
-    <ToastProvider>
-      <TiposAtivoProvider>
-        <div className="app-shell">
-          <ToastContainer />
+    <TiposAtivoProvider>
+      <div className="app-shell">
+        <ToastContainer />
         {/* Header */}
         <header className="app-header">
           <div className="app-header-brand">
@@ -53,7 +74,10 @@ export default function App() {
             </div>
             <h1>Sistema de Gerenciamento</h1>
           </div>
-          <span className="app-header-badge">Protótipo v0.2</span>
+          <div className="app-header-actions">
+            <span className="app-header-user">{usuario.email}</span>
+            <button className="btn-logout" onClick={logout}>Sair</button>
+          </div>
         </header>
 
         {/* Tabs */}
@@ -88,7 +112,6 @@ export default function App() {
         </main>
         <Footer />
       </div>
-      </TiposAtivoProvider>
-    </ToastProvider>
+    </TiposAtivoProvider>
   );
 }

@@ -103,7 +103,7 @@ export default function ItemForm({ onItemSalvo, focarCategoria }) {
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/inserir_item_estoque`, {
         method: 'POST',
-        headers: apiHeaders({ 'Content-Type': 'application/json' }),
+        headers: apiHeaders(),
         body: JSON.stringify({ p_dados: payload }),
       });
       if (!res.ok) {

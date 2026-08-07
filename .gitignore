@@ -30,4 +30,7 @@ csvs/
 .gitignore
 .agents/
 CONTEXT.md
+scripts/
 .env
+dev_auth.sql
+.vscode/

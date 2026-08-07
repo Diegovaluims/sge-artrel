@@ -55,14 +55,38 @@
   color: var(--color-accent);
 }
 
-.app-header-badge {
-  font-size: 0.7rem;
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-header-user {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
   font-family: var(--font-mono);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--color-text-muted);
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 0.2rem 0.5rem;
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.btn-logout:hover {
+  color: #f87171;
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
 }
 
 /* --- Tabs ----------------------------------------------------------------- */
@@ -115,11 +139,16 @@
   border-top: 1px solid var(--color-border);
   padding: 0.85rem 1.5rem;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.footer-esquerda {
+  display: flex;
+  flex-direction: column;
   gap: 0.15rem;
-  text-align: center;
 }
 
 .app-footer .footer-linha {
@@ -138,4 +167,16 @@
 .app-footer .footer-empresa a:hover {
   color: var(--color-accent);
   text-decoration: underline;
+}
+
+.footer-versao {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+  align-self: flex-end;
 }

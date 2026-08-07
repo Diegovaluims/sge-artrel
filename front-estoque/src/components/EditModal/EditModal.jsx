@@ -244,7 +244,7 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/atualizar_item_estoque`, {
         method: 'POST',
-        headers: apiHeaders({ 'Content-Type': 'application/json' }),
+        headers: apiHeaders(),
         body: JSON.stringify({ p_id: item.id, p_dados: payload }),
       });
       if (!res.ok) {
@@ -268,7 +268,7 @@ export default function EditModal({ item, fabricantes, onClose, onSalvo }) {
     try {
       const res = await fetch(`${POSTGREST_URL}/rpc/atualizar_item_estoque`, {
         method: 'POST',
-        headers: apiHeaders({ 'Content-Type': 'application/json' }),
+        headers: apiHeaders(),
         body: JSON.stringify({ p_id: item.id, p_dados: { status: 'DESCARTADO' } }),
       });
       if (!res.ok) {
