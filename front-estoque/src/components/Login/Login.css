@@ -24,11 +24,12 @@
   text-align: center;
 }
 
+/*533x358*/
 .login-logo {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
+  width: 160px;
+  height: 106px;
   margin-bottom: 1rem;
+  align-items: center;
 }
 
 .login-header h2 {

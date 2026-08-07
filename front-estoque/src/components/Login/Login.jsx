@@ -35,7 +35,7 @@ export default function Login() {
       <div className="login-card">
         <div className="login-header">
           <img src={logoArtrel} alt="Logo ARTREL" className="login-logo" />
-          <h2>SGE ARTREL</h2>
+          <h2>S.G.</h2>
           <p>Faça login para acessar o sistema.</p>
         </div>
 
