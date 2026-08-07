@@ -14,7 +14,7 @@ export default function Footer() {
           </span>
         </div>
       </div>
-      <span className="footer-versao">Protótipo v0.2</span>
+      <span className="footer-versao">Protótipo v0.3</span>
     </footer>
   );
 }
